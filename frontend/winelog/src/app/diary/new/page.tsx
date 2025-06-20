@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import Navbar from '@/components/layout/navbar';
 import Topbar from '@/components/layout/topbar';
 import Step1 from './components/Step1';

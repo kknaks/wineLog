@@ -1,7 +1,6 @@
 import Image from 'next/image';
-import { mockWineAnalysis } from '@/lib/mock/diary/mock';
 import { WineFormData } from '@/lib/types/diary';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface Step1Props {
@@ -12,9 +11,7 @@ interface Step1Props {
   onNext: () => void;
 }
 
-export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzing, onNext }: Step1Props) {
-  const totalSteps = 6;
-  const currentStep = 1;
+export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzing }: Step1Props) {
   const [isManualInput, setIsManualInput] = useState(false);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isFront: boolean) => {
@@ -48,13 +45,13 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
         origin: wineData.analysisResult.origin || '',
         year: wineData.analysisResult.year || '',
         type: (wineData.analysisResult.type === 'red' || wineData.analysisResult.type === 'white')
-          ? wineData.analysisResult.type
+          ? wineData.analysisResult.type as 'red' | 'white'
           : '' as 'red' | 'white' | '',
         description: wineData.analysisResult.description || ''
       };
       onUpdate(updateData);
     }
-  }, [wineData.analysisResult, wineData.name, wineData.grape, wineData.origin, isManualInput]);
+  }, [wineData.analysisResult, wineData.name, wineData.grape, wineData.origin, isManualInput, onUpdate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
