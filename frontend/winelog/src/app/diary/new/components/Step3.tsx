@@ -1,5 +1,3 @@
-import { WineFormData } from '@/lib/types/diary';
-
 const AROMA_OPTIONS = [
   '꽃향', '과일향', '베리향', '시트러스향', '허브향', '스파이시향',
   '나무향', '흙향', '가죽향', '커피향', '초콜릿향', '바닐라향',
@@ -14,19 +12,17 @@ interface TasteData {
   alcohol: number;
 }
 
-interface Step3Data {
-  taste?: TasteData;
-  aroma?: string[];
-}
-
 interface Step3Props {
-  wineData: any; // 임시로 any 사용
-  onUpdate: (data: any) => void;
+  wineData: {
+    taste?: TasteData;
+    aroma?: string[];
+  };
+  onUpdate: (data: { taste?: TasteData; aroma?: string[] }) => void;
   onNext: () => void;
   onPrev: () => void;
 }
 
-export default function Step3({ wineData, onUpdate, onNext, onPrev }: Step3Props) {
+export default function Step3({ wineData, onUpdate }: Step3Props) {
   const handleTasteChange = (name: string, value: number) => {
     onUpdate({
       taste: {

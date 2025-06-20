@@ -38,7 +38,7 @@ export default function Step2({ wineData, onUpdate }: Step2Props) {
       console.log('업데이트할 데이터:', updateData);
       onUpdate(updateData);
     }
-  }, [wineData.analysisResult, wineData.name, wineData.grape, wineData.origin]);
+  }, [wineData.analysisResult, wineData.name, wineData.grape, wineData.origin, onUpdate]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
