@@ -1,4 +1,4 @@
-import type { WineAnalysis } from '../types/diary';
+import type { WineAnalysis } from '../mock/diary/mock';
 
 const WINE_DATA_KEY = 'wineData';
 

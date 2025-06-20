@@ -1,5 +1,3 @@
-import type { WineAnalysis } from '@/lib/types/diary';
-
 interface Step5Props {
   wineData: any;
   onUpdate: (data: any) => void;
@@ -7,7 +5,7 @@ interface Step5Props {
   onPrev: () => void;
 }
 
-export default function Step5({ wineData, onUpdate, onNext, onPrev }: Step5Props) {
+export default function Step5({ wineData, onUpdate }: Step5Props) {
   const handleRatingChange = (value: number) => {
     onUpdate({
       rating: value

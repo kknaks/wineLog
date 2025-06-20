@@ -1,5 +1,3 @@
-import type { WineAnalysis } from '@/lib/types/diary';
-
 interface Step6Props {
   wineData: any;
   onUpdate: (data: any) => void;
@@ -7,7 +5,7 @@ interface Step6Props {
   onPrev: () => void;
 }
 
-export default function Step6({ wineData, onUpdate, onNext, onPrev }: Step6Props) {
+export default function Step6({ wineData, onUpdate }: Step6Props) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onUpdate({
       [e.target.name]: e.target.value

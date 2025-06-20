@@ -1,6 +1,6 @@
 import Image from 'next/image';
 import { WineFormData } from '@/lib/types/diary';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 
 interface Step1Props {
