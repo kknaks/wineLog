@@ -1,65 +1,86 @@
+'use client';
+
+import { WineFormData } from '@/lib/types/diary';
+import Image from 'next/image';
+
 interface Step5Props {
-  wineData: any;
-  onUpdate: (data: any) => void;
-  onNext: () => void;
-  onPrev: () => void;
+  wineData: WineFormData;
+  onUpdate: (data: Partial<WineFormData>) => void;
 }
 
 export default function Step5({ wineData, onUpdate }: Step5Props) {
   const handleRatingChange = (value: number) => {
-    onUpdate({
-      rating: value
-    });
+    onUpdate({ rating: value });
+  };
+
+  const handlePriceChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    onUpdate({ price: e.target.value });
   };
 
   const handleReviewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onUpdate({
-      review: e.target.value
-    });
+    onUpdate({ review: e.target.value });
   };
 
   return (
-    <main className="flex flex-col h-full p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">와인 정보 입력 (5/6)</h1>
-        <p className="text-gray-600 mt-2">와인에 대한 평가를 입력해주세요.</p>
+    <div className="flex flex-col h-[calc(100vh-8rem)] bg-white">
+      {/* Thumbnail Image */}
+      <div className="relative w-full aspect-square mb-4">
+        {wineData.thumbnailImage && (
+          <Image
+            src={wineData.thumbnailImage}
+            alt="Wine"
+            fill
+            className="object-cover"
+          />
+        )}
       </div>
 
-      <div className="flex-1 space-y-6">
-        {/* Rating */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">평점</h3>
-          <div className="flex gap-2">
-            {[1, 2, 3, 4, 5].map((rating) => (
-              <button
-                key={rating}
-                onClick={() => handleRatingChange(rating)}
-                className={`w-12 h-12 rounded-full flex items-center justify-center text-lg transition-colors ${wineData.rating === rating
-                  ? 'bg-wine-dark text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-              >
-                {rating}
-              </button>
-            ))}
-          </div>
-          <p className="text-sm text-gray-500 mt-2">
-            1: 별로예요 / 2: 그저 그래요 / 3: 괜찮아요 / 4: 맛있어요 / 5: 최고예요
-          </p>
+      {/* Rating */}
+      <div className="px-6">
+        <h3 className="text-sm font-medium text-gray-900 mb-2">Rate This Wine</h3>
+        <div className="flex gap-2 mb-6">
+          {[1, 2, 3, 4, 5].map((star) => (
+            <button
+              key={star}
+              onClick={() => handleRatingChange(star)}
+              className="text-2xl"
+            >
+              {star <= (wineData.rating || 0) ? '★' : '☆'}
+            </button>
+          ))}
         </div>
 
-        {/* Review */}
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">리뷰</h3>
+        {/* Price */}
+        <div className="mb-4">
+          <h3 className="text-sm font-medium text-gray-900 mb-2">Price</h3>
+          <input
+            type="text"
+            value={wineData.price || ''}
+            onChange={handlePriceChange}
+            className="w-full px-4 py-2 border border-gray-200 rounded-lg"
+            placeholder="Enter price"
+          />
+        </div>
+
+        {/* Diary */}
+        <div className="mb-4">
+          <h3 className="text-sm font-medium text-gray-900 mb-2">Diary</h3>
           <textarea
             value={wineData.review || ''}
             onChange={handleReviewChange}
-            rows={6}
-            placeholder="와인에 대한 전반적인 평가와 감상을 자유롭게 작성해주세요."
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine-dark focus:border-transparent text-black"
+            rows={4}
+            className="w-full px-4 py-2 border border-gray-200 rounded-lg resize-none"
+            placeholder="Write your thoughts..."
           />
         </div>
       </div>
-    </main>
+
+      {/* Save Button */}
+      <div className="mt-auto px-6 pb-6">
+        <button className="w-full bg-black text-white py-3 rounded-lg font-medium">
+          SAVE
+        </button>
+      </div>
+    </div>
   );
 } 

@@ -8,11 +8,57 @@ interface Step1Props {
   isAnalyzing: boolean;
   onUpdate: (data: Partial<WineFormData>) => void;
   onStartAnalyzing: () => void;
-  onNext: () => void;
 }
 
 export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzing }: Step1Props) {
   const [isManualInput, setIsManualInput] = useState(false);
+  const [frontImageFile, setFrontImageFile] = useState<File | null>(null);
+  const [backImageFile, setBackImageFile] = useState<File | null>(null);
+
+  // API 호출 함수
+  const analyzeWineImages = async (frontFile: File, backFile: File) => {
+    try {
+      onStartAnalyzing(); // 분석 시작 상태로 설정
+
+      const formData = new FormData();
+      formData.append('image_files', frontFile);
+      formData.append('image_files', backFile);
+
+      const response = await fetch('http://localhost:8000/api/v1/diary/wine-analysis', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`API 오류: ${response.status}`);
+      }
+
+      const result = await response.json();
+      console.log('API 응답:', result);
+
+      // 새로운 API 응답 형식에 맞게 처리
+      if (result.analysis_result?.success && result.analysis_result?.analysis?.wine_analysis) {
+        const wineData = result.analysis_result.analysis.wine_analysis;
+
+        const analysisResult = {
+          name: wineData.name || '',
+          grape: wineData.grape || '',
+          origin: wineData.origin || '',
+          year: wineData.year || '',
+          type: wineData.type === 'red' ? 'red' as const :
+            wineData.type === 'white' ? 'white' as const : '' as const,
+          description: wineData.description || '',
+        };
+
+        onUpdate({ analysisResult });
+      }
+
+    } catch (error) {
+      console.error('와인 분석 중 오류:', error);
+      // 에러 발생 시 사용자에게 알림 (나중에 toast 등으로 개선 가능)
+      alert('와인 분석 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>, isFront: boolean) => {
     const file = e.target.files?.[0];
@@ -23,13 +69,27 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
         const updatedData = isFront ? { frontImage: imageUrl } : { backImage: imageUrl };
         onUpdate(updatedData);
 
+        // 파일 객체도 별도로 저장
+        if (isFront) {
+          setFrontImageFile(file);
+        } else {
+          setBackImageFile(file);
+        }
+
         // 두 이미지가 모두 있을 때만 분석 시작 (직접입력 모드가 아닐 때만)
         const bothImagesPresent = isFront
           ? (imageUrl && wineData.backImage)
           : (wineData.frontImage && imageUrl);
 
-        if (bothImagesPresent && !isManualInput) {
-          onStartAnalyzing();
+        const bothFilesPresent = isFront
+          ? (file && backImageFile)
+          : (frontImageFile && file);
+
+        if (bothImagesPresent && bothFilesPresent && !isManualInput) {
+          // API 호출
+          const frontFile = isFront ? file : frontImageFile!;
+          const backFile = isFront ? backImageFile! : file;
+          analyzeWineImages(frontFile, backFile);
         }
       };
       reader.readAsDataURL(file);

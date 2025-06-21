@@ -3,14 +3,27 @@ import { WineAnalysis } from '../mock/diary/mock';
 export interface WineFormData {
   frontImage: string | null;
   backImage: string | null;
+  thumbnailImage: string | null;
   name: string;
   origin: string;
   grape: string;
   year: string;
   type: 'red' | 'white' | '';
   description: string;
-  analysisResult: WineAnalysis | null;
-  taste?: {
+  analysisResult: {
+    name: string;
+    grape: string;
+    origin: string;
+    year: string;
+    type: 'red' | 'white' | '';
+    description: string;
+  } | null;
+  pairings: string[];
+  aromaNote: string;
+  tasteNote: string;
+  finishNote: string;
+  drinkDate?: string;
+  taste: {
     sweetness: number;
     acidity: number;
     tannin: number;
@@ -18,12 +31,13 @@ export interface WineFormData {
     alcohol: number;
   };
   aroma?: string[];
-  pairings?: string[];
+  pairingImage?: string | null;
   rating?: number;
   review?: string;
   price?: string;
   purchaseLocation?: string;
-  drinkDate?: string;
+  id?: string;
+  createdAt?: Date;
 }
 
 export interface WineDiary extends WineAnalysis {

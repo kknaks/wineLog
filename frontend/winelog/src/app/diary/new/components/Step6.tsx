@@ -1,11 +1,11 @@
 interface Step6Props {
   wineData: any;
   onUpdate: (data: any) => void;
-  onNext: () => void;
-  onPrev: () => void;
+  onSave: () => void;
+  isSaving?: boolean;
 }
 
-export default function Step6({ wineData, onUpdate }: Step6Props) {
+export default function Step6({ wineData, onUpdate, onSave, isSaving }: Step6Props) {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     onUpdate({
       [e.target.name]: e.target.value
@@ -64,6 +64,20 @@ export default function Step6({ wineData, onUpdate }: Step6Props) {
             onChange={handleInputChange}
             className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine-dark focus:border-transparent text-black"
           />
+        </div>
+
+        {/* Save Button */}
+        <div className="flex justify-center mt-8">
+          <button
+            onClick={onSave}
+            disabled={!isFormValid || isSaving}
+            className={`px-12 py-3 rounded-full text-lg font-semibold transition-colors ${!isFormValid || isSaving
+              ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+              : 'bg-wine-dark text-white hover:bg-wine-hover shadow-lg'
+              }`}
+          >
+            {isSaving ? '저장 중...' : '🍷 와인 일기 저장하기'}
+          </button>
         </div>
       </div>
     </div>

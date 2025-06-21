@@ -1,122 +1,176 @@
+'use client';
+
+import { WineFormData } from '@/lib/types/diary';
+import Image from 'next/image';
 import { useState } from 'react';
 
-const PAIRING_OPTIONS = [
-  '소고기', '돼지고기', '양고기', '닭고기', '오리고기',
-  '생선회', '해산물', '조개류', '치즈', '샐러드',
-  '파스타', '피자', '디저트', '과일', '초콜릿',
-  '한식', '중식', '일식', '양식', '기타'
-];
-
 interface Step4Props {
-  wineData: any;
-  onUpdate: (data: any) => void;
-  onNext: () => void;
-  onPrev: () => void;
+  wineData: WineFormData;
+  onUpdate: (data: Partial<WineFormData>) => void;
 }
 
-export default function Step4({ wineData, onUpdate, onNext, onPrev }: Step4Props) {
-  const [customPairing, setCustomPairing] = useState('');
+type LayoutTemplate = 'left-date' | 'right-date' | 'bottom-date';
 
-  const pairings = wineData.pairings || [];
+export default function Step4({ wineData, onUpdate }: Step4Props) {
+  const [selectedTemplate, setSelectedTemplate] = useState<LayoutTemplate>('right-date');
 
-  const handlePairingToggle = (pairing: string) => {
-    const newPairings = pairings.includes(pairing)
-      ? pairings.filter((p: string) => p !== pairing)
-      : [...pairings, pairing];
-
-    onUpdate({
-      pairings: newPairings
-    });
+  const handleDateChange = (date: string) => {
+    onUpdate({ drinkDate: date });
   };
 
-  const handleAddCustomPairing = () => {
-    if (!customPairing.trim()) return;
-
-    onUpdate({
-      pairings: [...pairings, customPairing.trim()]
-    });
-    setCustomPairing('');
+  const taste = wineData.taste || {
+    sweetness: 50,
+    acidity: 50,
+    tannin: 50,
+    body: 50,
+    alcohol: 50
   };
 
-  const handleRemovePairing = (pairing: string) => {
-    onUpdate({
-      pairings: pairings.filter((p: string) => p !== pairing)
-    });
-  };
-
-  return (
-    <div className="flex flex-col h-full p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">와인 정보 입력 (4/6)</h1>
-        <p className="text-gray-600 mt-2">와인과 어울리는 음식을 선택해주세요.</p>
+  const renderTasteInfo = () => (
+    <div className="grid grid-cols-5 gap-4">
+      {/* Sweetness */}
+      <div className="flex flex-col items-center">
+        <div className="w-full h-24 bg-white/10 rounded-lg relative overflow-hidden">
+          <div
+            className="absolute bottom-0 w-full bg-white/30"
+            style={{ height: `${taste.sweetness}%` }}
+          />
+        </div>
+        <span className="mt-2 text-sm">당도</span>
+        <span className="text-xs">{taste.sweetness}%</span>
       </div>
 
-      <div className="flex-1 space-y-6">
-        {/* Pairing Selection */}
-        <div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">추천 페어링</h3>
-          <div className="flex flex-wrap gap-2">
-            {PAIRING_OPTIONS.map((pairing) => (
-              <button
-                key={pairing}
-                onClick={() => handlePairingToggle(pairing)}
-                className={`px-4 py-2 rounded-full text-sm transition-colors ${pairings.includes(pairing)
-                  ? 'bg-wine-dark text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-              >
-                {pairing}
-              </button>
-            ))}
-          </div>
+      {/* Acidity */}
+      <div className="flex flex-col items-center">
+        <div className="w-full h-24 bg-white/10 rounded-lg relative overflow-hidden">
+          <div
+            className="absolute bottom-0 w-full bg-white/30"
+            style={{ height: `${taste.acidity}%` }}
+          />
         </div>
+        <span className="mt-2 text-sm">산도</span>
+        <span className="text-xs">{taste.acidity}%</span>
+      </div>
 
-        {/* Custom Pairing Input */}
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">직접 입력</h3>
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={customPairing}
-              onChange={(e) => setCustomPairing(e.target.value)}
-              placeholder="페어링할 음식을 입력하세요"
-              className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine-dark focus:border-transparent text-black"
+      {/* Tannin */}
+      <div className="flex flex-col items-center">
+        <div className="w-full h-24 bg-white/10 rounded-lg relative overflow-hidden">
+          <div
+            className="absolute bottom-0 w-full bg-white/30"
+            style={{ height: `${taste.tannin}%` }}
+          />
+        </div>
+        <span className="mt-2 text-sm">탄닌</span>
+        <span className="text-xs">{taste.tannin}%</span>
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-col items-center">
+        <div className="w-full h-24 bg-white/10 rounded-lg relative overflow-hidden">
+          <div
+            className="absolute bottom-0 w-full bg-white/30"
+            style={{ height: `${taste.body}%` }}
+          />
+        </div>
+        <span className="mt-2 text-sm">바디</span>
+        <span className="text-xs">{taste.body}%</span>
+      </div>
+
+      {/* Alcohol */}
+      <div className="flex flex-col items-center">
+        <div className="w-full h-24 bg-white/10 rounded-lg relative overflow-hidden">
+          <div
+            className="absolute bottom-0 w-full bg-white/30"
+            style={{ height: `${taste.alcohol}%` }}
+          />
+        </div>
+        <span className="mt-2 text-sm">알코올</span>
+        <span className="text-xs">{taste.alcohol}%</span>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col h-[calc(100vh-8rem)] bg-white relative">
+      <div className="flex-1 relative">
+        {/* Wine Image */}
+        <div className="absolute inset-0">
+          {wineData.thumbnailImage && (
+            <Image
+              src={wineData.thumbnailImage}
+              alt="Wine"
+              fill
+              className="object-cover brightness-[0.85]"
             />
-            <button
-              onClick={handleAddCustomPairing}
-              disabled={!customPairing.trim()}
-              className={`px-4 py-2 rounded-lg transition-colors ${customPairing.trim()
-                ? 'bg-wine-dark text-white hover:bg-wine-hover'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-            >
-              추가
-            </button>
-          </div>
+          )}
         </div>
 
-        {/* Selected Pairings */}
-        {pairings.length > 0 && (
-          <div className="mt-8">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">선택된 페어링</h3>
-            <div className="flex flex-wrap gap-2">
-              {pairings.map((pairing: string) => (
-                <div
-                  key={pairing}
-                  className="px-4 py-2 bg-wine-dark text-white rounded-full flex items-center gap-2"
-                >
-                  <span>{pairing}</span>
-                  <button
-                    onClick={() => handleRemovePairing(pairing)}
-                    className="w-5 h-5 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-sm"
-                  >
-                    ×
-                  </button>
-                </div>
-              ))}
-            </div>
+        {/* Overlay Content */}
+        <div className="absolute inset-0 flex flex-col justify-between p-6 text-white">
+          {/* Content based on selected template */}
+          <div className={`flex ${selectedTemplate === 'left-date' ? 'flex-row' : 'flex-row-reverse'} justify-between items-start`}>
+            {selectedTemplate !== 'bottom-date' && (
+              <input
+                type="date"
+                value={wineData.drinkDate || ''}
+                onChange={(e) => handleDateChange(e.target.value)}
+                className="bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2 text-white"
+              />
+            )}
           </div>
-        )}
+
+          {/* Bottom Section */}
+          <div className="space-y-4">
+            <div className="bg-black/30 backdrop-blur-sm rounded-lg p-6">
+              {renderTasteInfo()}
+            </div>
+            {selectedTemplate === 'bottom-date' && (
+              <div className="flex justify-center">
+                <input
+                  type="date"
+                  value={wineData.drinkDate || ''}
+                  onChange={(e) => handleDateChange(e.target.value)}
+                  className="bg-black/30 backdrop-blur-sm rounded-lg px-4 py-2 text-white"
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Template Selection */}
+      <div className="fixed bottom-24 left-0 right-0 p-4 bg-white/10 backdrop-blur-sm">
+        <div className="flex justify-center gap-4">
+          <button
+            onClick={() => setSelectedTemplate('left-date')}
+            className={`w-20 h-20 border-2 rounded-lg flex flex-col p-2 ${selectedTemplate === 'left-date' ? 'border-wine-dark bg-wine-dark/20' : 'border-gray-300'
+              }`}
+          >
+            <div className="w-full h-3 bg-gray-300 mb-1" />
+            <div className="w-full h-3 bg-gray-300 mb-1" />
+            <div className="w-full h-3 bg-gray-300" />
+          </button>
+
+          <button
+            onClick={() => setSelectedTemplate('right-date')}
+            className={`w-20 h-20 border-2 rounded-lg flex flex-col p-2 ${selectedTemplate === 'right-date' ? 'border-wine-dark bg-wine-dark/20' : 'border-gray-300'
+              }`}
+          >
+            <div className="w-full h-3 bg-gray-300 mb-1" />
+            <div className="w-full h-3 bg-gray-300 mb-1" />
+            <div className="w-full h-3 bg-gray-300" />
+          </button>
+
+          <button
+            onClick={() => setSelectedTemplate('bottom-date')}
+            className={`w-20 h-20 border-2 rounded-lg flex flex-col p-2 ${selectedTemplate === 'bottom-date' ? 'border-wine-dark bg-wine-dark/20' : 'border-gray-300'
+              }`}
+          >
+            <div className="w-full h-3 bg-gray-300 mb-1" />
+            <div className="w-full h-3 bg-gray-300 mb-1" />
+            <div className="w-full h-3 bg-gray-300" />
+          </button>
+        </div>
       </div>
     </div>
   );

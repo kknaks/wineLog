@@ -1,205 +1,131 @@
-const AROMA_OPTIONS = [
-  '꽃향', '과일향', '베리향', '시트러스향', '허브향', '스파이시향',
-  '나무향', '흙향', '가죽향', '커피향', '초콜릿향', '바닐라향',
-  '견과류향', '버터향', '꿀향', '카라멜향', '토스트향', '연기향'
-];
+'use client';
 
-interface TasteData {
-  sweetness: number;
-  acidity: number;
-  tannin: number;
-  body: number;
-  alcohol: number;
-}
+import { useRef, useState, useEffect } from 'react';
+import Image from 'next/image';
+import { WineFormData } from '@/lib/types/diary';
 
 interface Step3Props {
-  wineData: {
-    taste?: TasteData;
-    aroma?: string[];
-  };
-  onUpdate: (data: { taste?: TasteData; aroma?: string[] }) => void;
-  onNext: () => void;
-  onPrev: () => void;
+  wineData: WineFormData;
+  onUpdate: (data: Partial<WineFormData>) => void;
 }
 
-export default function Step3({ wineData, onUpdate, onNext, onPrev }: Step3Props) {
-  const handleTasteChange = (name: string, value: number) => {
-    const currentTaste = wineData.taste || {
-      sweetness: 0,
-      acidity: 0,
-      tannin: 0,
-      body: 0,
-      alcohol: 0
-    };
+export default function Step3({ wineData, onUpdate }: Step3Props) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const [isCameraReady, setIsCameraReady] = useState(false);
 
-    onUpdate({
-      taste: {
-        ...currentTaste,
-        [name]: value
+  useEffect(() => {
+    startCamera();
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
       }
-    });
+    };
+  }, []);
+
+  const startCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment' },
+        audio: false
+      });
+
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        streamRef.current = stream;
+        setIsCameraReady(true);
+      }
+    } catch (err) {
+      console.error('카메라를 시작할 수 없습니다:', err);
+    }
   };
 
-  const handleAromaToggle = (aroma: string) => {
-    const currentAroma = wineData.aroma || [];
-    const newAroma = currentAroma.includes(aroma)
-      ? currentAroma.filter((a: string) => a !== aroma)
-      : [...currentAroma, aroma];
+  const handleCapture = () => {
+    if (!videoRef.current || !isCameraReady) return;
 
-    onUpdate({
-      aroma: newAroma
-    });
+    const canvas = document.createElement('canvas');
+    canvas.width = videoRef.current.videoWidth;
+    canvas.height = videoRef.current.videoHeight;
+    const ctx = canvas.getContext('2d');
+
+    if (ctx && videoRef.current) {
+      ctx.drawImage(videoRef.current, 0, 0);
+      const imageDataUrl = canvas.toDataURL('image/jpeg');
+      onUpdate({ thumbnailImage: imageDataUrl });
+
+      // Stop the camera after capturing
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(track => track.stop());
+        setIsCameraReady(false);
+      }
+    }
   };
 
-  // 기본값 설정
-  const taste = wineData.taste || {
-    sweetness: 0,
-    acidity: 0,
-    tannin: 0,
-    body: 0,
-    alcohol: 0
+  const handleRetake = () => {
+    onUpdate({ thumbnailImage: null });
+    startCamera();
   };
-
-  const aroma = wineData.aroma || [];
 
   return (
-    <div className="flex flex-col h-full p-6">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">와인 정보 입력 (3/6)</h1>
-        <p className="text-gray-600 mt-2">와인의 맛과 향을 평가해주세요.</p>
+    <div className="flex flex-col h-[calc(100vh-8rem)] bg-white relative">
+      <div className="flex-1 relative">
+        <div className="absolute inset-0 flex items-center justify-center">
+          <div className="w-full max-w-md aspect-[3/4] relative bg-gray-100 rounded-lg overflow-hidden">
+            {wineData.thumbnailImage ? (
+              <Image
+                src={wineData.thumbnailImage}
+                alt="Captured wine"
+                fill
+                className="object-cover"
+              />
+            ) : (
+              <video
+                ref={videoRef}
+                autoPlay
+                playsInline
+                className="w-full h-full object-cover"
+              />
+            )}
+          </div>
+        </div>
       </div>
 
-      <div className="flex-1 space-y-6">
-        {/* Taste Sliders */}
-        <div className="space-y-6">
-          <h3 className="text-lg font-semibold text-gray-800">맛 평가</h3>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              당도 (Sweetness)
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              value={taste.sweetness}
-              onChange={(e) => handleTasteChange('sweetness', parseInt(e.target.value))}
-              className="w-full"
-            />
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Dry</span>
-              <span>Sweet</span>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              산도 (Acidity)
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              value={taste.acidity}
-              onChange={(e) => handleTasteChange('acidity', parseInt(e.target.value))}
-              className="w-full"
-            />
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Soft</span>
-              <span>Crisp</span>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              탄닌 (Tannin)
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              value={taste.tannin}
-              onChange={(e) => handleTasteChange('tannin', parseInt(e.target.value))}
-              className="w-full"
-            />
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Smooth</span>
-              <span>Firm</span>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              바디감 (Body)
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              value={taste.body}
-              onChange={(e) => handleTasteChange('body', parseInt(e.target.value))}
-              className="w-full"
-            />
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Light</span>
-              <span>Full</span>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              알코올 (Alcohol)
-            </label>
-            <input
-              type="range"
-              min="0"
-              max="5"
-              value={taste.alcohol}
-              onChange={(e) => handleTasteChange('alcohol', parseInt(e.target.value))}
-              className="w-full"
-            />
-            <div className="flex justify-between text-sm text-gray-500">
-              <span>Low</span>
-              <span>High</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Aroma Selection */}
-        <div className="mt-8">
-          <h3 className="text-lg font-semibold text-gray-800 mb-4">향 선택</h3>
-          <div className="flex flex-wrap gap-2">
-            {AROMA_OPTIONS.map((aromaOption) => (
-              <button
-                key={aromaOption}
-                onClick={() => handleAromaToggle(aromaOption)}
-                className={`px-4 py-2 rounded-full text-sm transition-colors ${aroma.includes(aromaOption)
-                  ? 'bg-wine-dark text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  }`}
-              >
-                {aromaOption}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Navigation Buttons */}
-        <div className="flex justify-between mt-6">
+      <div className="w-full bg-white py-4 px-4 border-t">
+        <div className="flex justify-between items-center max-w-md mx-auto">
           <button
-            onClick={onPrev}
-            className="px-6 py-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition-colors"
+            className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-200"
+            onClick={() => { }}
           >
-            이전
+            <Image src="/images/samples/sample_image.jpg" alt="Gallery" width={24} height={24} />
           </button>
+
+          {wineData.thumbnailImage ? (
+            <button
+              onClick={handleRetake}
+              className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center"
+            >
+              <div className="w-14 h-14 border-2 border-white rounded-full flex items-center justify-center text-white">
+                재촬영
+              </div>
+            </button>
+          ) : (
+            <button
+              onClick={handleCapture}
+              className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center"
+              disabled={!isCameraReady}
+            >
+              <div className="w-14 h-14 border-2 border-white rounded-full"></div>
+            </button>
+          )}
+
           <button
-            onClick={onNext}
-            className="px-6 py-2 bg-wine-dark text-white rounded-full hover:bg-wine-hover transition-colors"
+            className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-200"
+            onClick={() => { }}
           >
-            다음
+            <Image src="/window.svg" alt="Rotate" width={24} height={24} />
           </button>
         </div>
       </div>
     </div>
   );
-} 
+}
