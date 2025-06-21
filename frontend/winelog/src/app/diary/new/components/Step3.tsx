@@ -22,11 +22,19 @@ interface Step3Props {
   onPrev: () => void;
 }
 
-export default function Step3({ wineData, onUpdate }: Step3Props) {
+export default function Step3({ wineData, onUpdate, onNext, onPrev }: Step3Props) {
   const handleTasteChange = (name: string, value: number) => {
+    const currentTaste = wineData.taste || {
+      sweetness: 0,
+      acidity: 0,
+      tannin: 0,
+      body: 0,
+      alcohol: 0
+    };
+
     onUpdate({
       taste: {
-        ...wineData.taste,
+        ...currentTaste,
         [name]: value
       }
     });
