@@ -2,7 +2,15 @@ import Image from 'next/image';
 import { WineFormData } from '@/lib/types/diary';
 import { useState, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Input } from '@/components/ui/input';
 import { Plus } from 'lucide-react';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface Step1Props {
   wineData: WineFormData;
@@ -108,7 +116,7 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
         type: (wineData.analysisResult.type === 'red' || wineData.analysisResult.type === 'white')
           ? wineData.analysisResult.type as 'red' | 'white'
           : '' as 'red' | 'white' | '',
-        description: wineData.analysisResult.description || ''
+        alcohol: wineData.analysisResult.alcohol || ''
       };
       onUpdate(updateData);
     }
@@ -129,7 +137,7 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
         origin: '',
         year: '',
         type: '',
-        description: ''
+        alcohol: ''
       });
     }
   };
@@ -146,7 +154,7 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
           {/* Front Label Upload */}
           <div className="flex-1 flex flex-col items-center">
             <p className="text-sm font-rhodium-libre text-gray-700 mb-2">Front Label</p>
-            <label className="relative block w-full aspect-[3/4] cursor-pointer">
+            <label className="relative block w-full aspect-[4/5] cursor-pointer">
               <input
                 type="file"
                 accept="image/*"
@@ -176,7 +184,7 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
           {/* Back Label Upload */}
           <div className="flex-1 flex flex-col items-center">
             <p className="text-sm font-rhodium-libre text-gray-700 mb-2">Back Label</p>
-            <label className="relative block w-full aspect-[3/4] cursor-pointer">
+            <label className="relative block w-full aspect-[4/5] cursor-pointer">
               <input
                 type="file"
                 accept="image/*"
@@ -227,7 +235,6 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
               id="manual-input"
               checked={isManualInput}
               onCheckedChange={handleManualInputChange}
-              className="border-gray-400 data-[state=checked]:bg-wine-dark data-[state=checked]:border-wine-dark"
             />
             <label
               htmlFor="manual-input"
@@ -253,101 +260,102 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
                   <label htmlFor="name" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
                     Wine Name
                   </label>
-                  <input
+                  <Input
                     type="text"
                     id="name"
                     name="name"
                     value={wineData.name || ''}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine-dark focus:border-transparent text-black"
                     placeholder="와인 이름을 입력하세요"
                   />
                 </div>
 
                 {/* 원산지 */}
                 <div>
-                  <label htmlFor="origin" className="block text-sm font-medium text-gray-700 mb-2">
-                    원산지
+                  <label htmlFor="origin" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
+                    Origin
                   </label>
-                  <input
+                  <Input
                     type="text"
                     id="origin"
                     name="origin"
                     value={wineData.origin || ''}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine-dark focus:border-transparent text-black"
                     placeholder="원산지를 입력하세요"
                   />
                 </div>
 
-                {/* 품종 */}
-                <div>
-                  <label htmlFor="grape" className="block text-sm font-medium text-gray-700 mb-2">
-                    품종
-                  </label>
-                  <input
-                    type="text"
-                    id="grape"
-                    name="grape"
-                    value={wineData.grape || ''}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine-dark focus:border-transparent text-black"
-                    placeholder="품종을 입력하세요"
-                  />
+                {/* 와인 타입과 품종을 한 줄에 */}
+                <div className="flex gap-4">
+                  {/* 와인 타입 */}
+                  <div className="flex-1">
+                    <label htmlFor="type" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
+                      Wine Type
+                    </label>
+                    <Select
+                      value={wineData.type || ''}
+                      onValueChange={(value) => onUpdate({ type: value as 'red' | 'white' | '' })}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="선택해주세요" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="red">레드 와인</SelectItem>
+                        <SelectItem value="white">화이트 와인</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* 품종 */}
+                  <div className="flex-1">
+                    <label htmlFor="grape" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
+                      Grape
+                    </label>
+                    <Input
+                      type="text"
+                      id="grape"
+                      name="grape"
+                      value={wineData.grape || ''}
+                      onChange={handleInputChange}
+                      placeholder="품종을 입력하세요"
+                    />
+                  </div>
                 </div>
 
-                {/* 연도와 타입을 한 줄에 */}
+                {/* 연도와 알코올 도수를 한 줄에 */}
                 <div className="flex gap-4">
                   {/* 연도 */}
                   <div className="flex-1">
-                    <label htmlFor="year" className="block text-sm font-medium text-gray-700 mb-2">
-                      연도
+                    <label htmlFor="year" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
+                      Year
                     </label>
-                    <input
+                    <Input
                       type="text"
                       id="year"
                       name="year"
                       value={wineData.year || ''}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine-dark focus:border-transparent text-black"
                       placeholder="예: 2020"
                     />
                   </div>
 
-                  {/* 와인 타입 */}
+                  {/* 알코올 도수 */}
                   <div className="flex-1">
-                    <label htmlFor="type" className="block text-sm font-medium text-gray-700 mb-2">
-                      와인 타입
+                    <label htmlFor="alcohol" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
+                      Alcohol
                     </label>
-                    <select
-                      id="type"
-                      name="type"
-                      value={wineData.type || ''}
+                    <Input
+                      type="text"
+                      id="alcohol"
+                      name="alcohol"
+                      value={wineData.alcohol || ''}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine-dark focus:border-transparent text-black"
-                    >
-                      <option value="">선택해주세요</option>
-                      <option value="red">레드 와인</option>
-                      <option value="white">화이트 와인</option>
-                    </select>
+                      placeholder="예: 13.5%"
+                    />
                   </div>
                 </div>
 
-                {/* 상세 정보 */}
-                <div>
-                  <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                    상세 정보
-                  </label>
-                  <textarea
-                    id="description"
-                    name="description"
-                    value={wineData.description || ''}
-                    onChange={handleInputChange}
-                    rows={3}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine-dark focus:border-transparent text-black resize-none"
-                    placeholder="와인에 대한 상세 정보를 입력하세요"
-                  />
-                </div>
+
               </div>
             )}
           </div>

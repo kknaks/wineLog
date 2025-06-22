@@ -9,6 +9,7 @@ export interface WineFormData {
   grape: string;
   year: string;
   type: 'red' | 'white' | '';
+  alcohol: string;
   description: string;
   analysisResult: {
     name: string;
@@ -16,6 +17,7 @@ export interface WineFormData {
     origin: string;
     year: string;
     type: 'red' | 'white' | '';
+    alcohol?: string;
     description: string;
   } | null;
   pairings: string[];

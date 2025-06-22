@@ -10,6 +10,7 @@ import Step4 from './components/Step4';
 import Step5 from './components/Step5';
 import Step6 from './components/Step6';
 import { WineFormData } from '@/lib/types/diary';
+import { Button } from '@/components/ui/button';
 
 export default function NewWineDiary() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -25,6 +26,7 @@ export default function NewWineDiary() {
     grape: '',
     year: '',
     type: '',
+    alcohol: '',
     description: '',
     analysisResult: null,
     pairings: [],
@@ -127,29 +129,25 @@ export default function NewWineDiary() {
       </div>
 
       {/* Navigation Buttons */}
-      <div className="px-6 py-4 bg-white border-t border-gray-100">
+      <div className="px-4 py-2 bg-white">
         <div className="flex justify-between">
-          <button
+          <Button
             onClick={handlePrev}
             disabled={currentStep === 1}
-            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${currentStep === 1
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
-              }`}
+            variant="outline"
+            size="lg"
           >
-            이전
-          </button>
+            Prev
+          </Button>
 
-          <button
+          <Button
             onClick={handleNext}
             disabled={currentStep === totalSteps}
-            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${currentStep === totalSteps
-              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
-              : 'bg-wine-dark text-white hover:bg-wine-darker active:bg-wine-darkest'
-              }`}
+            variant="default"
+            size="lg"
           >
-            다음
-          </button>
+            Next
+          </Button>
         </div>
       </div>
     </div>
