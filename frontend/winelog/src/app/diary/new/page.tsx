@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import Navbar from '@/components/layout/navbar';
 import Topbar from '@/components/layout/topbar';
 import Step1 from './components/Step1';
@@ -40,10 +40,7 @@ export default function NewWineDiary() {
     }
   });
 
-  // 터치 이벤트를 위한 ref와 상태
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+
 
   const handleUpdateWineData = (data: Partial<WineFormData>) => {
     setWineData(prev => ({ ...prev, ...data }));
@@ -81,51 +78,12 @@ export default function NewWineDiary() {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-  // 터치 이벤트 핸들러
-  const onTouchStart = (e: React.TouchEvent) => {
-    setTouchEnd(null);
-    setTouchStart(e.targetTouches[0].clientX);
-  };
 
-  const onTouchMove = (e: React.TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const onTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe && currentStep < totalSteps) {
-      handleNext();
-    }
-    if (isRightSwipe && currentStep > 1) {
-      handlePrev();
-    }
-  };
 
   return (
-    <div className="min-h-screen bg-white">
-      <Topbar />
-
-      {/* Progress Indicator */}
-      <div className="w-full bg-gray-200 h-2 fixed top-14 z-10">
-        <div
-          className="bg-wine-dark h-2 transition-all duration-300"
-          style={{ width: `${(currentStep / totalSteps) * 100}%` }}
-        />
-      </div>
-
+    <div className="h-full bg-white flex flex-col">
       {/* Step Content */}
-      <div
-        ref={containerRef}
-        className="pt-14 pb-24 min-h-screen"
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
+      <div className="flex-1 overflow-y-auto">
         {currentStep === 1 && (
           <Step1
             wineData={wineData}
@@ -168,26 +126,32 @@ export default function NewWineDiary() {
         )}
       </div>
 
-      {/* Page Dots Indicator */}
-      <div className="fixed bottom-20 left-0 right-0 flex justify-center gap-2 pb-4">
-        {Array.from({ length: totalSteps }, (_, index) => (
+      {/* Navigation Buttons */}
+      <div className="px-6 py-4 bg-white border-t border-gray-100">
+        <div className="flex justify-between">
           <button
-            key={index}
-            onClick={() => setCurrentStep(index + 1)}
-            className={`w-2 h-2 rounded-full transition-all duration-300 ${currentStep === index + 1
-              ? 'bg-wine-dark scale-125'
-              : 'bg-gray-300 hover:bg-gray-400'
+            onClick={handlePrev}
+            disabled={currentStep === 1}
+            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${currentStep === 1
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 active:bg-gray-300'
               }`}
-          />
-        ))}
-      </div>
+          >
+            이전
+          </button>
 
-      {/* Swipe Hint */}
-      <div className="fixed bottom-8 left-0 right-0 text-center">
-        <p className="text-xs text-gray-400">좌우로 스와이프하여 페이지 이동</p>
+          <button
+            onClick={handleNext}
+            disabled={currentStep === totalSteps}
+            className={`px-6 py-3 rounded-lg font-medium transition-all duration-200 ${currentStep === totalSteps
+              ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              : 'bg-wine-dark text-white hover:bg-wine-darker active:bg-wine-darkest'
+              }`}
+          >
+            다음
+          </button>
+        </div>
       </div>
-
-      <Navbar />
     </div>
   );
 }

@@ -2,6 +2,7 @@ import Image from 'next/image';
 import { WineFormData } from '@/lib/types/diary';
 import { useState, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Plus } from 'lucide-react';
 
 interface Step1Props {
   wineData: WineFormData;
@@ -137,19 +138,14 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
   const shouldShowForm = (wineData.frontImage && wineData.backImage) || isManualInput;
 
   return (
-    <main className="flex flex-col h-full p-6">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-800">와인 정보 입력 (1/6)</h1>
-        <p className="text-gray-600 mt-2">와인 라벨 사진을 업로드하고 정보를 입력해주세요.</p>
-      </div>
-
+    <main className="flex flex-col px-6 pt-0 pb-6">
       {/* Image Upload Container */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">라벨 이미지 업로드</h2>
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-2 font-rhodium-libre">Label Image</h2>
         <div className="flex gap-4">
           {/* Front Label Upload */}
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-700 mb-2">앞면 라벨</p>
+          <div className="flex-1 flex flex-col items-center">
+            <p className="text-sm font-rhodium-libre text-gray-700 mb-2">Front Label</p>
             <label className="relative block w-full aspect-[3/4] cursor-pointer">
               <input
                 type="file"
@@ -170,8 +166,7 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
                   />
                 ) : (
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-                    <span className="text-3xl mb-2">📷</span>
-                    <span className="text-sm">앞면 라벨 추가</span>
+                    <Plus size={32} />
                   </div>
                 )}
               </div>
@@ -179,8 +174,8 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
           </div>
 
           {/* Back Label Upload */}
-          <div className="flex-1">
-            <p className="text-sm font-medium text-gray-700 mb-2">뒷면 라벨</p>
+          <div className="flex-1 flex flex-col items-center">
+            <p className="text-sm font-rhodium-libre text-gray-700 mb-2">Back Label</p>
             <label className="relative block w-full aspect-[3/4] cursor-pointer">
               <input
                 type="file"
@@ -201,8 +196,7 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
                   />
                 ) : (
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-500">
-                    <span className="text-3xl mb-2">📷</span>
-                    <span className="text-sm">뒷면 라벨 추가</span>
+                    <Plus size={32} />
                   </div>
                 )}
               </div>
@@ -212,10 +206,10 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
       </div>
 
       {/* Wine Information Form */}
-      <div className="mb-6">
+      <div className="mb-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold text-gray-800">와인 정보</h2>
+            <h2 className="text-lg font-semibold text-gray-800 font-rhodium-libre">Information</h2>
             {isAnalyzing && (
               <div className="flex items-center text-wine-dark">
                 <span className="animate-pulse">분석중...</span>
@@ -256,8 +250,8 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
               <div className="space-y-4">
                 {/* 와인 이름 */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                    와인 이름
+                  <label htmlFor="name" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
+                    Wine Name
                   </label>
                   <input
                     type="text"

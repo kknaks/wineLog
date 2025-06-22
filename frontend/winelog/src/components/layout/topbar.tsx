@@ -1,25 +1,34 @@
 'use client';
 
-import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Topbar() {
+  const pathname = usePathname();
+
+  const getPageTitle = () => {
+    if (pathname.startsWith('/diary')) {
+      return 'Diary';
+    }
+
+    switch (pathname) {
+      case '/discover':
+        return 'Discover';
+      case '/images':
+        return 'Images';
+      case '/my':
+        return 'My Page';
+      default:
+        return 'Wine Log';
+    }
+  };
+
   return (
-    <header className="fixed top-0 left-0 right-0 bg-wine-dark text-wine-text shadow-lg z-10">
-      <div className="flex items-center justify-between h-14 px-4">
-        {/* Left: Menu Icon */}
-        <button className="p-2 text-xl hover:bg-wine-hover rounded-full">
-          <span>☰</span>
-        </button>
-
+    <header className="bg-white border-b border-gray-200 mt-3 mb-3">
+      <div className="flex items-center justify-center h-14 px-4">
         {/* Center: Title */}
-        <h1 className="text-xl font-semibold tracking-wider">
-          Wine Log
+        <h1 className="font-coustard text-xl font-[400] tracking-wider">
+          {getPageTitle()}
         </h1>
-
-        {/* Right: Write Icon */}
-        <Link href="/diary/new" className="p-2 text-xl hover:bg-wine-hover rounded-full">
-          <span>✍️</span>
-        </Link>
       </div>
     </header>
   );

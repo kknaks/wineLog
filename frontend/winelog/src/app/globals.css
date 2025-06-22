@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -11,12 +15,15 @@
   /* 와인 테마 색상 */
   --color-wine-dark: #5C2D48;    /* 네비게이션 배경 */
   --color-wine-light: #E4D5D5;   /* 활성/호버 */
-  --color-wine-text: #FFFFFF;      /* 텍스트 */
+  --color-wine-text: #FFFFFF;    /* 텍스트 */
   --color-wine-hover: #7E4F68;   /* 호버 */
 
   /* 폰트 */
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-coustard: var(--font-coustard);
+  --font-roboto: var(--font-roboto);
+  --font-rhodium-libre: var(--font-rhodium-libre);
 }
 
 /* 다크 모드 설정 */
@@ -27,9 +34,11 @@
   }
 }
 
-body {
-  background: var(--color-background);
-  color: var(--color-foreground);
+@layer base {
+  body {
+    background: var(--color-background);
+    color: var(--color-foreground);
+  }
 }
 
 @theme inline {
