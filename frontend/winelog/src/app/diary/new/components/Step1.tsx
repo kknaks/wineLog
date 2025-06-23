@@ -1,8 +1,10 @@
 import Image from 'next/image';
-import { WineFormData } from '@/lib/types/diary';
+import { DiaryFormData } from '@/lib/types/diary';
+import { WineData } from '@/lib/types/wine';
 import { useState, useEffect } from 'react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
 import {
   Select,
@@ -13,16 +15,18 @@ import {
 } from '@/components/ui/select';
 
 interface Step1Props {
-  wineData: WineFormData;
+  diaryData: DiaryFormData;
   isAnalyzing: boolean;
-  onUpdate: (data: Partial<WineFormData>) => void;
+  onUpdateDiary: (data: Partial<DiaryFormData>) => void;
+  onUpdateWine: (wineData: Partial<WineData>) => void;
   onStartAnalyzing: () => void;
 }
 
-export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzing }: Step1Props) {
+export default function Step1({ diaryData, isAnalyzing, onUpdateDiary, onUpdateWine, onStartAnalyzing }: Step1Props) {
   const [isManualInput, setIsManualInput] = useState(false);
   const [frontImageFile, setFrontImageFile] = useState<File | null>(null);
   const [backImageFile, setBackImageFile] = useState<File | null>(null);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
 
   // API 호출 함수
   const analyzeWineImages = async (frontFile: File, backFile: File) => {
@@ -47,19 +51,19 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
 
       // 새로운 API 응답 형식에 맞게 처리
       if (result.analysis_result?.success && result.analysis_result?.analysis?.wine_analysis) {
-        const wineData = result.analysis_result.analysis.wine_analysis;
+        const wineAnalysisData = result.analysis_result.analysis.wine_analysis;
 
         const analysisResult = {
-          name: wineData.name || '',
-          grape: wineData.grape || '',
-          origin: wineData.origin || '',
-          year: wineData.year || '',
-          type: wineData.type === 'red' ? 'red' as const :
-            wineData.type === 'white' ? 'white' as const : '' as const,
-          description: wineData.description || '',
+          name: wineAnalysisData.name || '',
+          grape: wineAnalysisData.grape || '',
+          origin: wineAnalysisData.origin || '',
+          year: wineAnalysisData.year || '',
+          type: wineAnalysisData.type || 'red',
+          description: wineAnalysisData.description || '',
+          alcohol: wineAnalysisData.alcohol ? wineAnalysisData.alcohol.toString().replace('%', '') : ''
         };
 
-        onUpdate({ analysisResult });
+        setAnalysisResult(analysisResult);
       }
 
     } catch (error) {
@@ -75,8 +79,8 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
       const reader = new FileReader();
       reader.onloadend = () => {
         const imageUrl = reader.result as string;
-        const updatedData = isFront ? { frontImage: imageUrl } : { backImage: imageUrl };
-        onUpdate(updatedData);
+        const updatedWineData = isFront ? { frontImage: imageUrl } : { backImage: imageUrl };
+        onUpdateWine(updatedWineData);
 
         // 파일 객체도 별도로 저장
         if (isFront) {
@@ -87,8 +91,8 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
 
         // 두 이미지가 모두 있을 때만 분석 시작 (직접입력 모드가 아닐 때만)
         const bothImagesPresent = isFront
-          ? (imageUrl && wineData.backImage)
-          : (wineData.frontImage && imageUrl);
+          ? (imageUrl && diaryData.wineData.backImage)
+          : (diaryData.wineData.frontImage && imageUrl);
 
         const bothFilesPresent = isFront
           ? (file && backImageFile)
@@ -107,43 +111,48 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
 
   // AI 분석 결과가 있으면 자동으로 폼에 채우기 (직접입력 모드가 아닐 때만)
   useEffect(() => {
-    if (wineData.analysisResult && !wineData.name && !wineData.grape && !wineData.origin && !isManualInput) {
+    if (analysisResult && !diaryData.wineData.name && !diaryData.wineData.grape && !diaryData.wineData.origin && !isManualInput) {
       const updateData = {
-        name: wineData.analysisResult.name || '',
-        grape: wineData.analysisResult.grape || '',
-        origin: wineData.analysisResult.origin || '',
-        year: wineData.analysisResult.year || '',
-        type: (wineData.analysisResult.type === 'red' || wineData.analysisResult.type === 'white')
-          ? wineData.analysisResult.type as 'red' | 'white'
-          : '' as 'red' | 'white' | '',
-        alcohol: wineData.analysisResult.alcohol || ''
+        name: analysisResult.name || '',
+        grape: analysisResult.grape || '',
+        origin: analysisResult.origin || '',
+        year: analysisResult.year || '',
+        type: (analysisResult.type === 'red' || analysisResult.type === 'white' ||
+          analysisResult.type === 'sparkling' || analysisResult.type === 'rose' ||
+          analysisResult.type === 'icewine' || analysisResult.type === 'natural' ||
+          analysisResult.type === 'dessert') ? analysisResult.type : 'red',
+        alcohol: analysisResult.alcohol || ''
       };
-      onUpdate(updateData);
+      onUpdateWine(updateData);
     }
-  }, [wineData.analysisResult, wineData.name, wineData.grape, wineData.origin, isManualInput, onUpdate]);
+  }, [analysisResult, diaryData.wineData.name, diaryData.wineData.grape, diaryData.wineData.origin, isManualInput, onUpdateWine]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    onUpdate({ [name]: value });
+    onUpdateWine({ [name]: value } as Partial<WineData>);
+  };
+
+  const handleSelectChange = (value: string) => {
+    onUpdateWine({ type: value as WineData['type'] });
   };
 
   const handleManualInputChange = (checked: boolean) => {
     setIsManualInput(checked);
     if (checked) {
       // 직접입력 모드로 전환 시 기존 데이터 초기화
-      onUpdate({
+      onUpdateWine({
         name: '',
         grape: '',
         origin: '',
         year: '',
-        type: '',
+        type: 'red',
         alcohol: ''
       });
     }
   };
 
   // 폼을 표시할 조건: 두 이미지가 모두 있거나, 직접입력 모드일 때
-  const shouldShowForm = (wineData.frontImage && wineData.backImage) || isManualInput;
+  const shouldShowForm = (diaryData.wineData.frontImage && diaryData.wineData.backImage) || isManualInput;
 
   return (
     <main className="flex flex-col px-6 pt-0 pb-6">
@@ -162,12 +171,12 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
                 className="hidden"
               />
               <div className={`w-full h-full rounded-lg border-2 border-dashed
-                ${wineData.frontImage ? 'border-wine-dark' : 'border-gray-300'}
+                ${diaryData.wineData.frontImage ? 'border-wine-dark' : 'border-gray-300'}
                 hover:border-wine-dark transition-colors relative overflow-hidden`}
               >
-                {wineData.frontImage ? (
+                {diaryData.wineData.frontImage ? (
                   <Image
-                    src={wineData.frontImage}
+                    src={diaryData.wineData.frontImage}
                     alt="Front label preview"
                     fill
                     style={{ objectFit: 'cover' }}
@@ -192,12 +201,12 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
                 className="hidden"
               />
               <div className={`w-full h-full rounded-lg border-2 border-dashed
-                ${wineData.backImage ? 'border-wine-dark' : 'border-gray-300'}
+                ${diaryData.wineData.backImage ? 'border-wine-dark' : 'border-gray-300'}
                 hover:border-wine-dark transition-colors relative overflow-hidden`}
               >
-                {wineData.backImage ? (
+                {diaryData.wineData.backImage ? (
                   <Image
-                    src={wineData.backImage}
+                    src={diaryData.wineData.backImage}
                     alt="Back label preview"
                     fill
                     style={{ objectFit: 'cover' }}
@@ -223,9 +232,9 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
                 <span className="animate-pulse">분석중...</span>
               </div>
             )}
-            {wineData.analysisResult && !isManualInput && (
+            {analysisResult && !isManualInput && (
               <div className="flex items-center text-blue-600">
-                <span className="text-sm">🤖 AI가 자동으로 입력했습니다</span>
+                <span className="text-sm">🤖 AI 분석 완료</span>
               </div>
             )}
           </div>
@@ -236,12 +245,12 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
               checked={isManualInput}
               onCheckedChange={handleManualInputChange}
             />
-            <label
+            <Label
               htmlFor="manual-input"
               className="text-sm font-medium text-black leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
             >
               직접입력
-            </label>
+            </Label>
           </div>
         </div>
 
@@ -257,14 +266,14 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
               <div className="space-y-4">
                 {/* 와인 이름 */}
                 <div>
-                  <label htmlFor="name" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
+                  <Label htmlFor="name" className="text-sm font-rhodium-libre text-gray-700 mb-2">
                     Wine Name
-                  </label>
+                  </Label>
                   <Input
                     type="text"
                     id="name"
                     name="name"
-                    value={wineData.name || ''}
+                    value={diaryData.wineData.name || ''}
                     onChange={handleInputChange}
                     placeholder="와인 이름을 입력하세요"
                   />
@@ -272,14 +281,14 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
 
                 {/* 원산지 */}
                 <div>
-                  <label htmlFor="origin" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
+                  <Label htmlFor="origin" className="text-sm font-rhodium-libre text-gray-700 mb-2">
                     Origin
-                  </label>
+                  </Label>
                   <Input
                     type="text"
                     id="origin"
                     name="origin"
-                    value={wineData.origin || ''}
+                    value={diaryData.wineData.origin || ''}
                     onChange={handleInputChange}
                     placeholder="원산지를 입력하세요"
                   />
@@ -289,12 +298,12 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
                 <div className="flex gap-4">
                   {/* 와인 타입 */}
                   <div className="flex-1">
-                    <label htmlFor="type" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
+                    <Label htmlFor="type" className="text-sm font-rhodium-libre text-gray-700 mb-2">
                       Wine Type
-                    </label>
+                    </Label>
                     <Select
-                      value={wineData.type || ''}
-                      onValueChange={(value) => onUpdate({ type: value as 'red' | 'white' | '' })}
+                      value={diaryData.wineData.type || ''}
+                      onValueChange={handleSelectChange}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder="선택해주세요" />
@@ -302,20 +311,25 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
                       <SelectContent>
                         <SelectItem value="red">레드 와인</SelectItem>
                         <SelectItem value="white">화이트 와인</SelectItem>
+                        <SelectItem value="sparkling">스파클링 와인</SelectItem>
+                        <SelectItem value="rose">로제 와인</SelectItem>
+                        <SelectItem value="icewine">아이스 와인</SelectItem>
+                        <SelectItem value="natural">내추럴 와인</SelectItem>
+                        <SelectItem value="dessert">디저트 와인</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* 품종 */}
                   <div className="flex-1">
-                    <label htmlFor="grape" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
+                    <Label htmlFor="grape" className="text-sm font-rhodium-libre text-gray-700 mb-2">
                       Grape
-                    </label>
+                    </Label>
                     <Input
                       type="text"
                       id="grape"
                       name="grape"
-                      value={wineData.grape || ''}
+                      value={diaryData.wineData.grape || ''}
                       onChange={handleInputChange}
                       placeholder="품종을 입력하세요"
                     />
@@ -326,14 +340,14 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
                 <div className="flex gap-4">
                   {/* 연도 */}
                   <div className="flex-1">
-                    <label htmlFor="year" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
+                    <Label htmlFor="year" className="text-sm font-rhodium-libre text-gray-700 mb-2">
                       Year
-                    </label>
+                    </Label>
                     <Input
                       type="text"
                       id="year"
                       name="year"
-                      value={wineData.year || ''}
+                      value={diaryData.wineData.year || ''}
                       onChange={handleInputChange}
                       placeholder="예: 2020"
                     />
@@ -341,21 +355,22 @@ export default function Step1({ wineData, isAnalyzing, onUpdate, onStartAnalyzin
 
                   {/* 알코올 도수 */}
                   <div className="flex-1">
-                    <label htmlFor="alcohol" className="block text-sm font-rhodium-libre text-gray-700 mb-2">
-                      Alcohol
-                    </label>
+                    <Label htmlFor="alcohol" className="text-sm font-rhodium-libre text-gray-700 mb-2">
+                      Alcohol (%)
+                    </Label>
                     <Input
-                      type="text"
+                      type="number"
                       id="alcohol"
                       name="alcohol"
-                      value={wineData.alcohol || ''}
+                      value={diaryData.wineData.alcohol || ''}
                       onChange={handleInputChange}
-                      placeholder="예: 13.5%"
+                      placeholder="13.5"
+                      step="0.1"
+                      min="0"
+                      max="100"
                     />
                   </div>
                 </div>
-
-
               </div>
             )}
           </div>

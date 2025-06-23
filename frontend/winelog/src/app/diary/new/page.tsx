@@ -8,46 +8,60 @@ import Step2 from './components/Step2';
 import Step3 from './components/Step3';
 import Step4 from './components/Step4';
 import Step5 from './components/Step5';
-import Step6 from './components/Step6';
-import { WineFormData } from '@/lib/types/diary';
+import { DiaryFormData } from '@/lib/types/diary';
+import { WineData } from '@/lib/types/wine';
 import { Button } from '@/components/ui/button';
 
 export default function NewWineDiary() {
   const [currentStep, setCurrentStep] = useState(1);
-  const totalSteps = 6;
+  const totalSteps = 5;
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [wineData, setWineData] = useState<WineFormData>({
-    frontImage: null,
-    backImage: null,
-    thumbnailImage: null,
-    name: '',
-    origin: '',
-    grape: '',
-    year: '',
-    type: '',
-    alcohol: '',
-    description: '',
-    analysisResult: null,
-    pairings: [],
-    aromaNote: '',
-    tasteNote: '',
-    finishNote: '',
-    taste: {
+  const [diaryData, setDiaryData] = useState<DiaryFormData>({
+    wineData: {
+      id: 0,
+      frontImage: null,
+      backImage: null,
+      name: '',
+      origin: '',
+      grape: '',
+      year: '',
+      alcohol: '',
+      type: 'red',
+      aromaNote: '',
+      tasteNote: '',
+      finishNote: '',
       sweetness: 50,
       acidity: 50,
       tannin: 50,
       body: 50,
-      alcohol: 50
-    }
+    },
+    thumbnailImage: null,
+    downloadImage: null,
+    drinkDate: new Date().toISOString().split('T')[0],
+    rating: 0,
+    review: '',
+    price: '',
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    isPublic: false,
   });
 
-
-
-  const handleUpdateWineData = (data: Partial<WineFormData>) => {
-    setWineData(prev => ({ ...prev, ...data }));
+  const handleUpdateDiaryData = (data: Partial<DiaryFormData>) => {
+    setDiaryData(prev => ({ ...prev, ...data }));
     // 분석 결과가 포함된 업데이트인 경우 분석 상태를 false로 변경
-    if ('analysisResult' in data) {
+    if ('wineData' in data) {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleUpdateWineData = (wineData: Partial<WineData>) => {
+    setDiaryData(prev => ({
+      ...prev,
+      wineData: { ...prev.wineData, ...wineData }
+    }));
+    // AI 분석으로 와인 데이터가 업데이트되면 분석 상태를 false로 변경
+    if (isAnalyzing) {
       setIsAnalyzing(false);
     }
   };
@@ -55,11 +69,60 @@ export default function NewWineDiary() {
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      // TODO: 실제 API 호출로 변경
-      console.log('와인 데이터 저장:', wineData);
+      console.log('와인 일기 데이터 저장:', diaryData);
 
-      // Mock API 호출 시뮬레이션
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // FormData 생성 (이미지 파일 포함)
+      const formData = new FormData();
+
+      // 와인 데이터를 JSON으로 추가
+      formData.append('wineData', JSON.stringify(diaryData.wineData));
+      formData.append('drinkDate', diaryData.drinkDate || new Date().toISOString().split('T')[0]);
+      formData.append('rating', (diaryData.rating || 0).toString());
+      formData.append('review', diaryData.review || '');
+      formData.append('price', diaryData.price || '');
+      formData.append('isPublic', (diaryData.isPublic || false).toString());
+
+      // 이미지 파일들 추가
+      if (diaryData.wineData.frontImage) {
+        formData.append('frontImage', diaryData.wineData.frontImage);
+      }
+      if (diaryData.wineData.backImage) {
+        formData.append('backImage', diaryData.wineData.backImage);
+      }
+      if (diaryData.thumbnailImage) {
+        formData.append('thumbnailImage', diaryData.thumbnailImage);
+      }
+      if (diaryData.downloadImage) {
+        formData.append('downloadImage', diaryData.downloadImage);
+      }
+
+      console.log('전송할 FormData:', {
+        wineData: diaryData.wineData,
+        drinkDate: diaryData.drinkDate,
+        rating: diaryData.rating,
+        review: diaryData.review,
+        price: diaryData.price,
+        isPublic: diaryData.isPublic,
+        hasImages: {
+          frontImage: !!diaryData.wineData.frontImage,
+          backImage: !!diaryData.wineData.backImage,
+          thumbnailImage: !!diaryData.thumbnailImage,
+          downloadImage: !!diaryData.downloadImage,
+        }
+      });
+
+      // API 호출
+      const response = await fetch('/api/diary/save', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error(`API 요청 실패: ${response.status} ${response.statusText}`);
+      }
+
+      const result = await response.json();
+      console.log('저장 결과:', result);
 
       // 저장 성공 시 홈으로 이동 또는 성공 메시지 표시
       alert('와인 일기가 성공적으로 저장되었습니다!');
@@ -80,50 +143,45 @@ export default function NewWineDiary() {
     setCurrentStep(prev => Math.max(prev - 1, 1));
   };
 
-
-
   return (
     <div className="h-full bg-white flex flex-col">
       {/* Step Content */}
       <div className="flex-1 overflow-y-auto">
         {currentStep === 1 && (
           <Step1
-            wineData={wineData}
+            diaryData={diaryData}
             isAnalyzing={isAnalyzing}
-            onUpdate={handleUpdateWineData}
+            onUpdateDiary={handleUpdateDiaryData}
+            onUpdateWine={handleUpdateWineData}
             onStartAnalyzing={() => setIsAnalyzing(true)}
           />
         )}
         {currentStep === 2 && (
           <Step2
-            wineData={wineData}
-            onUpdate={handleUpdateWineData}
+            diaryData={diaryData}
+            onUpdateDiary={handleUpdateDiaryData}
+            onUpdateWine={handleUpdateWineData}
           />
         )}
         {currentStep === 3 && (
           <Step3
-            wineData={wineData}
-            onUpdate={handleUpdateWineData}
+            diaryData={diaryData}
+            onUpdateDiary={handleUpdateDiaryData}
+            onUpdateWine={handleUpdateWineData}
           />
         )}
         {currentStep === 4 && (
           <Step4
-            wineData={wineData}
-            onUpdate={handleUpdateWineData}
+            diaryData={diaryData}
+            onUpdateDiary={handleUpdateDiaryData}
+            onUpdateWine={handleUpdateWineData}
           />
         )}
         {currentStep === 5 && (
           <Step5
-            wineData={wineData}
-            onUpdate={handleUpdateWineData}
-          />
-        )}
-        {currentStep === 6 && (
-          <Step6
-            wineData={wineData}
-            onUpdate={handleUpdateWineData}
-            onSave={handleSave}
-            isSaving={isSaving}
+            diaryData={diaryData}
+            onUpdateDiary={handleUpdateDiaryData}
+            onUpdateWine={handleUpdateWineData}
           />
         )}
       </div>
@@ -140,14 +198,24 @@ export default function NewWineDiary() {
             Prev
           </Button>
 
-          <Button
-            onClick={handleNext}
-            disabled={currentStep === totalSteps}
-            variant="default"
-            size="lg"
-          >
-            Next
-          </Button>
+          {currentStep === totalSteps ? (
+            <Button
+              onClick={handleSave}
+              disabled={isSaving}
+              variant="default"
+              size="lg"
+            >
+              {isSaving ? 'Saving...' : 'Save'}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleNext}
+              variant="default"
+              size="lg"
+            >
+              Next
+            </Button>
+          )}
         </div>
       </div>
     </div>

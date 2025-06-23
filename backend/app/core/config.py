@@ -45,7 +45,7 @@ class Settings(BaseSettings):
   max_file_size: int = int(os.getenv("MAX_FILE_SIZE", "10485760"))  # 10MB
   upload_dir: str = os.getenv("UPLOAD_DIR", "temp_uploads")
   
-  perplexity_api_key: str = Field(default="", env="PERPLEXITY_API_KEY")
+  perplexity_api_key: str = os.getenv("PERPLEXITY_API_KEY")
   
   class Config:
       env_file = ".env"

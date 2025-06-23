@@ -60,12 +60,12 @@ async def analyze_wine_images(image_files: List[UploadFile]):
         확인이 안되는 부분은 반드시 빈 문자열("")로 응답해주세요. null이나 undefined는 사용하지 마세요.
         
         다음 정보들을 추출해주세요:
-        - 와인 이름
-        - 포도 품종
+        - 와인 이름(라벨지에 입력된 원문)
+        - 포도 품종(한국어로)
         - 원산지 (국가 및 지역)
-        - 생산 연도
-        - 종류 (레드, 화이트, 스파클링, 아이스와인, 네추럴)
-        - 도수
+        - 생산 연도(숫자)
+        - 종류 (red, white, sparkling, rose, icewine, natural, dessert)
+        - 도수 (숫자로 예: 13.5)
 
         아래의 JSON 형식으로 응답해주세요:
         {
@@ -73,8 +73,8 @@ async def analyze_wine_images(image_files: List[UploadFile]):
             "grape": "포도 품종",
             "origin": "원산지",
             "year": "생산 연도",
-            "type": "red, white, sparkling, ice wine, natural",
-            "alcohol": "도수"
+            "type": "red, white, sparkling, rose, icewine, natural, dessert",
+            "alcohol": "도수 (숫자로 예: 13.5)"
         }
 
         JSON 형식으로만 응답해주세요. 다른 텍스트는 포함하지 마세요.
@@ -140,14 +140,13 @@ async def analyze_wine_taste(request: WineTasteRequest):
                     f"종류: {request.type or '정보 없음'}\n\n"
                     "다음 형식의 JSON으로 응답해주세요:\n"
                     "{\n"
-                    '  "aroma": "향에 대한 간결한 설명 (예: 꽃향, 과일향, 트러블향 등)",\n'
-                    '  "taste": "맛에 대한 간결한 설명 (예: 달콤, 산미, 탄닌 등)",\n'
-                    '  "finish": "피니시에 대한 간결한 설명 (예: 길고 가벼운, 짧고 강한 등)",\n'
+                    '  "aroma": "향에 대한 태그형식의 간결한 설명 (예: 꽃향, 과일향, 트러블향 등)",\n'
+                    '  "taste": "맛에 대한 태그형식의 간결한 설명 (예: 달콤, 산미, 탄닌 등)",\n'
+                    '  "finish": "피니시에 대한 태그형식의 간결한 설명 (예: 길고 가벼운, 짧고 강한 등)",\n'
                     '  "sweetness": 0-5 사이의 숫자,\n'
                     '  "acidity": 0-5 사이의 숫자,\n'
                     '  "tannin": 0-5 사이의 숫자,\n'
                     '  "body": 0-5 사이의 숫자,\n'
-                    '  "alcohol": 0-5 사이의 숫자\n'
                     "}"
                 )
             }

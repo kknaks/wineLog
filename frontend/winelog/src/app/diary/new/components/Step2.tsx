@@ -1,12 +1,17 @@
-import { WineFormData } from '@/lib/types/diary';
+import { DiaryFormData } from '@/lib/types/diary';
+import { WineData } from '@/lib/types/wine';
 import { useState, useEffect, useRef } from 'react';
+import { Slider } from '@/components/ui/slider';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface Step2Props {
-  wineData: WineFormData;
-  onUpdate: (data: Partial<WineFormData>) => void;
+  diaryData: DiaryFormData;
+  onUpdateDiary: (data: Partial<DiaryFormData>) => void;
+  onUpdateWine: (wineData: Partial<WineData>) => void;
 }
 
-export default function Step2({ wineData, onUpdate }: Step2Props) {
+export default function Step2({ diaryData, onUpdateDiary, onUpdateWine }: Step2Props) {
   const [isSearching, setIsSearching] = useState(false);
   const hasSearchedRef = useRef(false);
 
@@ -14,12 +19,12 @@ export default function Step2({ wineData, onUpdate }: Step2Props) {
   useEffect(() => {
     const searchWineData = async () => {
       // 이미 테이스팅 노트 데이터가 있으면 리턴
-      if (wineData.aromaNote || wineData.tasteNote || wineData.finishNote || wineData.taste) {
+      if (diaryData.wineData.aromaNote || diaryData.wineData.tasteNote || diaryData.wineData.finishNote) {
         return;
       }
 
-      // 검색할 데이터가 없으면 리턴
-      if (!wineData.name && !wineData.origin && !wineData.grape && !wineData.year && !wineData.type) {
+      // name이 없으면 검색하지 않음 (필수값)
+      if (!diaryData.wineData.name) {
         return;
       }
 
@@ -36,11 +41,11 @@ export default function Step2({ wineData, onUpdate }: Step2Props) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            name: wineData.name,
-            origin: wineData.origin,
-            grape: wineData.grape,
-            year: wineData.year,
-            type: wineData.type,
+            name: diaryData.wineData.name,
+            origin: diaryData.wineData.origin,
+            grape: diaryData.wineData.grape,
+            year: diaryData.wineData.year,
+            type: diaryData.wineData.type,
           }),
         });
 
@@ -53,17 +58,14 @@ export default function Step2({ wineData, onUpdate }: Step2Props) {
         // 검색 결과가 있으면 테이스팅 노트 데이터 업데이트
         if (result.taste_result?.tastingNote) {
           const tastingNote = result.taste_result.tastingNote;
-          onUpdate({
+          onUpdateWine({
             aromaNote: tastingNote.aroma || '',
             tasteNote: tastingNote.taste || '',
             finishNote: tastingNote.finish || '',
-            taste: {
-              sweetness: tastingNote.sweetness || 1,
-              acidity: tastingNote.acidity || 1,
-              tannin: tastingNote.tannin || 1,
-              body: tastingNote.body || 1,
-              alcohol: tastingNote.alcohol || 1
-            }
+            sweetness: tastingNote.sweetness || 1,
+            acidity: tastingNote.acidity || 1,
+            tannin: tastingNote.tannin || 1,
+            body: tastingNote.body || 1,
           });
           hasSearchedRef.current = true;
         }
@@ -75,219 +77,171 @@ export default function Step2({ wineData, onUpdate }: Step2Props) {
       }
     };
 
-    // 와인 기본 정보가 변경될 때만 검색 실행
-    if (wineData.name || wineData.origin || wineData.grape || wineData.year || wineData.type) {
+    // 와인 이름이 있을 때만 검색 실행
+    if (diaryData.wineData.name) {
       searchWineData();
     }
-  }, [wineData.name, wineData.origin, wineData.grape, wineData.year, wineData.type]);
+  }, [diaryData.wineData.name]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    onUpdate({ [name]: value });
+    onUpdateWine({ [name]: value } as Partial<WineData>);
   };
 
-  const handleSliderChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    const currentTaste = wineData.taste || {
-      sweetness: 50,
-      acidity: 50,
-      tannin: 50,
-      body: 50,
-      alcohol: 50
-    };
-
-    onUpdate({
-      taste: {
-        ...currentTaste,
-        [name]: parseInt(value)
-      }
-    });
+  const handleSliderChange = (name: string, value: number[]) => {
+    onUpdateWine({ [name]: value[0] } as Partial<WineData>);
   };
 
   return (
-    <main className="flex flex-col h-full p-6">
+    <main className="flex flex-col px-6 pt-0 pb-6">
+      {/* Tasting Notes Container */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800">테이스팅 노트 (2/6)</h1>
-        <p className="text-gray-600 mt-2">와인의 맛과 향을 기록해주세요.</p>
-      </div>
-
-      {isSearching ? (
-        <div className="flex items-center justify-center p-8">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wine-dark"></div>
-          <span className="ml-3 text-gray-600">와인 정보 검색 중...</span>
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-gray-800 font-rhodium-libre">Tasting Notes</h2>
+            {isSearching && (
+              <div className="flex items-center text-wine-dark">
+                <span className="animate-pulse">검색중...</span>
+              </div>
+            )}
+          </div>
         </div>
-      ) : (
-        <div className="bg-gray-50 rounded-xl p-6 space-y-6 shadow-sm">
-          {/* Aroma */}
-          <div>
-            <label htmlFor="aromaNote" className="block text-sm font-medium text-gray-700 mb-2">
-              Aroma
-            </label>
-            <textarea
-              id="aromaNote"
-              name="aromaNote"
-              value={wineData.aromaNote || ''}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine-dark focus:border-transparent text-black h-24"
-              placeholder="와인의 향을 설명해주세요"
-            />
+
+        {isSearching ? (
+          <div className="p-4 bg-white rounded-lg border border-gray-200">
+            <div className="flex items-center justify-center py-4">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-wine-dark"></div>
+            </div>
           </div>
-
-          {/* Taste */}
-          <div>
-            <label htmlFor="tasteNote" className="block text-sm font-medium text-gray-700 mb-2">
-              Taste
-            </label>
-            <textarea
-              id="tasteNote"
-              name="tasteNote"
-              value={wineData.tasteNote || ''}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine-dark focus:border-transparent text-black h-24"
-              placeholder="와인의 맛을 설명해주세요"
-            />
-          </div>
-
-          {/* Finish */}
-          <div>
-            <label htmlFor="finishNote" className="block text-sm font-medium text-gray-700 mb-2">
-              Finish
-            </label>
-            <textarea
-              id="finishNote"
-              name="finishNote"
-              value={wineData.finishNote || ''}
-              onChange={handleInputChange}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-wine-dark focus:border-transparent text-black h-24"
-              placeholder="와인의 여운을 설명해주세요"
-            />
-          </div>
-
-          <div className="mt-8">
-            <h2 className="text-xl font-semibold text-gray-800 mb-6">Taste</h2>
-
-            {/* Sweetness Slider */}
-            <div className="mb-6">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>당도 (Sweetness)</span>
-                <div className="flex justify-between w-32">
-                  <span>Dry</span>
-                  <span>Sweet</span>
-                </div>
-              </div>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => handleSliderChange({
-                      target: { name: 'sweetness', value: value.toString() }
-                    } as React.ChangeEvent<HTMLInputElement>)}
-                    className={`flex-1 h-8 rounded-lg transition-colors ${(wineData.taste?.sweetness || 0) >= value
-                      ? 'bg-wine-dark'
-                      : 'bg-gray-200'
-                      }`}
-                  />
-                ))}
-              </div>
+        ) : (
+          <div className="space-y-4">
+            {/* Aroma */}
+            <div>
+              <Label htmlFor="aromaNote" className="text-sm font-rhodium-libre text-gray-700 mb-2">
+                Aroma
+              </Label>
+              <Input
+                type="text"
+                id="aromaNote"
+                name="aromaNote"
+                value={diaryData.wineData.aromaNote || ''}
+                onChange={handleInputChange}
+                placeholder="와인의 향을 설명해주세요"
+              />
             </div>
 
-            {/* Acidity Slider */}
-            <div className="mb-6">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>산도 (Acidity)</span>
-                <div className="flex justify-between w-32">
-                  <span>Soft</span>
-                  <span>Crisp</span>
-                </div>
+            {/* Taste */}
+            <div>
+              <Label htmlFor="tasteNote" className="text-sm font-rhodium-libre text-gray-700 mb-2">
+                Taste
+              </Label>
+              <Input
+                type="text"
+                id="tasteNote"
+                name="tasteNote"
+                value={diaryData.wineData.tasteNote || ''}
+                onChange={handleInputChange}
+                placeholder="와인의 맛을 설명해주세요"
+              />
+            </div>
+
+            {/* Finish */}
+            <div>
+              <Label htmlFor="finishNote" className="text-sm font-rhodium-libre text-gray-700 mb-2">
+                Finish
+              </Label>
+              <Input
+                type="text"
+                id="finishNote"
+                name="finishNote"
+                value={diaryData.wineData.finishNote || ''}
+                onChange={handleInputChange}
+                placeholder="와인의 여운을 설명해주세요"
+              />
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Taste Profile Container */}
+      {!isSearching && (
+        <div className="mb-4">
+          <h2 className="text-lg font-semibold text-gray-800 mb-4 font-rhodium-libre">Taste Profile</h2>
+
+          <div className="space-y-6">
+            {/* Body Slider */}
+            <div>
+              <div className="mb-3">
+                <span className="text-sm font-rhodium-libre text-gray-700">바디감 (Body)</span>
               </div>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => handleSliderChange({
-                      target: { name: 'acidity', value: value.toString() }
-                    } as React.ChangeEvent<HTMLInputElement>)}
-                    className={`flex-1 h-8 rounded-lg transition-colors ${(wineData.taste?.acidity || 0) >= value
-                      ? 'bg-wine-dark'
-                      : 'bg-gray-200'
-                      }`}
-                  />
-                ))}
+              <Slider
+                value={[diaryData.wineData.body || 1]}
+                onValueChange={(value) => handleSliderChange('body', value)}
+                min={1}
+                max={5}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-2">
+                <span>Light</span>
+                <span>Full</span>
               </div>
             </div>
 
             {/* Tannin Slider */}
-            <div className="mb-6">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>탄닌 (Tanin)</span>
-                <div className="flex justify-between w-32">
-                  <span>Smooth</span>
-                  <span>Firm</span>
-                </div>
+            <div>
+              <div className="mb-3">
+                <span className="text-sm font-rhodium-libre text-gray-700">타닌 (Tannin)</span>
               </div>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => handleSliderChange({
-                      target: { name: 'tannin', value: value.toString() }
-                    } as React.ChangeEvent<HTMLInputElement>)}
-                    className={`flex-1 h-8 rounded-lg transition-colors ${(wineData.taste?.tannin || 0) >= value
-                      ? 'bg-wine-dark'
-                      : 'bg-gray-200'
-                      }`}
-                  />
-                ))}
+              <Slider
+                value={[diaryData.wineData.tannin || 1]}
+                onValueChange={(value) => handleSliderChange('tannin', value)}
+                min={1}
+                max={5}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-2">
+                <span>Soft</span>
+                <span>Firm</span>
               </div>
             </div>
 
-            {/* Body Slider */}
-            <div className="mb-6">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>바디감 (Body)</span>
-                <div className="flex justify-between w-32">
-                  <span>Light</span>
-                  <span>Full</span>
-                </div>
+            {/* Acidity Slider */}
+            <div>
+              <div className="mb-3">
+                <span className="text-sm font-rhodium-libre text-gray-700">산도 (Acidity)</span>
               </div>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => handleSliderChange({
-                      target: { name: 'body', value: value.toString() }
-                    } as React.ChangeEvent<HTMLInputElement>)}
-                    className={`flex-1 h-8 rounded-lg transition-colors ${(wineData.taste?.body || 0) >= value
-                      ? 'bg-wine-dark'
-                      : 'bg-gray-200'
-                      }`}
-                  />
-                ))}
+              <Slider
+                value={[diaryData.wineData.acidity || 1]}
+                onValueChange={(value) => handleSliderChange('acidity', value)}
+                min={1}
+                max={5}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-2">
+                <span>Low</span>
+                <span>High</span>
               </div>
             </div>
 
-            {/* Alcohol Slider */}
-            <div className="mb-6">
-              <div className="flex justify-between text-sm text-gray-600 mb-2">
-                <span>알코올 (Alcohol)</span>
-                <div className="flex justify-between w-32">
-                  <span>Light</span>
-                  <span>Strong</span>
-                </div>
+            {/* Sweetness Slider */}
+            <div>
+              <div className="mb-3">
+                <span className="text-sm font-rhodium-libre text-gray-700">단맛 (Sweetness)</span>
               </div>
-              <div className="flex gap-2">
-                {[1, 2, 3, 4, 5].map((value) => (
-                  <button
-                    key={value}
-                    onClick={() => handleSliderChange({
-                      target: { name: 'alcohol', value: value.toString() }
-                    } as React.ChangeEvent<HTMLInputElement>)}
-                    className={`flex-1 h-8 rounded-lg transition-colors ${(wineData.taste?.alcohol || 0) >= value
-                      ? 'bg-wine-dark'
-                      : 'bg-gray-200'
-                      }`}
-                  />
-                ))}
+              <Slider
+                value={[diaryData.wineData.sweetness || 1]}
+                onValueChange={(value) => handleSliderChange('sweetness', value)}
+                min={1}
+                max={5}
+                step={1}
+                className="w-full"
+              />
+              <div className="flex justify-between text-xs text-gray-500 mt-2">
+                <span>Dry</span>
+                <span>Sweet</span>
               </div>
             </div>
           </div>

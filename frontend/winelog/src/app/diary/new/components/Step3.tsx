@@ -2,14 +2,16 @@
 
 import { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
-import { WineFormData } from '@/lib/types/diary';
+import { DiaryFormData } from '@/lib/types/diary';
+import { WineData } from '@/lib/types/wine';
 
 interface Step3Props {
-  wineData: WineFormData;
-  onUpdate: (data: Partial<WineFormData>) => void;
+  diaryData: DiaryFormData;
+  onUpdateDiary: (data: Partial<DiaryFormData>) => void;
+  onUpdateWine: (wineData: Partial<WineData>) => void;
 }
 
-export default function Step3({ wineData, onUpdate }: Step3Props) {
+export default function Step3({ diaryData, onUpdateDiary, onUpdateWine }: Step3Props) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
@@ -51,7 +53,7 @@ export default function Step3({ wineData, onUpdate }: Step3Props) {
     if (ctx && videoRef.current) {
       ctx.drawImage(videoRef.current, 0, 0);
       const imageDataUrl = canvas.toDataURL('image/jpeg');
-      onUpdate({ thumbnailImage: imageDataUrl });
+      onUpdateDiary({ thumbnailImage: imageDataUrl });
 
       // Stop the camera after capturing
       if (streamRef.current) {
@@ -62,18 +64,21 @@ export default function Step3({ wineData, onUpdate }: Step3Props) {
   };
 
   const handleRetake = () => {
-    onUpdate({ thumbnailImage: null });
+    onUpdateDiary({ thumbnailImage: null });
     startCamera();
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-8rem)] bg-white relative">
-      <div className="flex-1 relative">
-        <div className="absolute inset-0 flex items-center justify-center">
-          <div className="w-full max-w-md aspect-[3/4] relative bg-gray-100 rounded-lg overflow-hidden">
-            {wineData.thumbnailImage ? (
+    <main className="flex flex-col px-6 pt-0 pb-6">
+      {/* Camera Container */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-4 font-rhodium-libre">Photo</h2>
+
+        <div className="flex justify-center">
+          <div className="w-full max-w-sm aspect-[3/4] relative bg-gray-100 rounded-lg overflow-hidden">
+            {diaryData.thumbnailImage ? (
               <Image
-                src={wineData.thumbnailImage}
+                src={diaryData.thumbnailImage}
                 alt="Captured wine"
                 fill
                 className="object-cover"
@@ -90,8 +95,9 @@ export default function Step3({ wineData, onUpdate }: Step3Props) {
         </div>
       </div>
 
-      <div className="w-full bg-white py-4 px-4 border-t">
-        <div className="flex justify-between items-center max-w-md mx-auto">
+      {/* Camera Controls */}
+      <div className="flex justify-center">
+        <div className="flex justify-between items-center w-full max-w-sm">
           <button
             className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-200"
             onClick={() => { }}
@@ -99,12 +105,12 @@ export default function Step3({ wineData, onUpdate }: Step3Props) {
             <Image src="/images/samples/sample_image.jpg" alt="Gallery" width={24} height={24} />
           </button>
 
-          {wineData.thumbnailImage ? (
+          {diaryData.thumbnailImage ? (
             <button
               onClick={handleRetake}
               className="w-16 h-16 bg-blue-500 rounded-full flex items-center justify-center"
             >
-              <div className="w-14 h-14 border-2 border-white rounded-full flex items-center justify-center text-white">
+              <div className="w-14 h-14 border-2 border-white rounded-full flex items-center justify-center text-white text-sm">
                 재촬영
               </div>
             </button>
@@ -126,6 +132,6 @@ export default function Step3({ wineData, onUpdate }: Step3Props) {
           </button>
         </div>
       </div>
-    </div>
+    </main>
   );
 }
