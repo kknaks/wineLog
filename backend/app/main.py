@@ -19,7 +19,11 @@ app = FastAPI(
 # CORS 미들웨어 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000"],  # Frontend URL
+    allow_origins=[
+        "http://localhost:3000",  # 로컬 개발용
+        "https://wine-log.kknaks.site",  # 프로덕션 프론트엔드
+        "https://www.wine-log.kknaks.site"
+    ],
     allow_credentials=True,
     allow_methods=["*"],  # 모든 HTTP 메서드 허용
     allow_headers=["*"],  # 모든 HTTP 헤더 허용
