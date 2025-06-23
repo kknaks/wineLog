@@ -1,4 +1,4 @@
-name: 'AI Server Deploy'  
+name: 'Wine Log Backend Deploy'  
 on:
   push:
     paths:
