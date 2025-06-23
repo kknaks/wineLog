@@ -10,6 +10,15 @@ class Settings(BaseSettings):
   app_name: str = "Wine Log API"
   debug: bool = os.getenv("DEBUG", "False").lower() == "true"
 
+  # # API 서버 설정
+  # api_host: str = os.getenv("API_HOST", "0.0.0.0")
+  # api_port: int = int(os.getenv("API_PORT", "7000"))
+  
+  # # JWT 설정
+  # secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+  # algorithm: str = os.getenv("ALGORITHM", "HS256")
+  # access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+
   # Database settings
   db_host: str = os.getenv("DB_HOST", "localhost")
   db_port: int = int(os.getenv("DB_PORT", "5432"))
@@ -50,5 +59,6 @@ class Settings(BaseSettings):
   class Config:
       env_file = ".env"
       case_sensitive = False
+      extra = "allow"  # 추가 필드 허용
 
 settings = Settings()
