@@ -13,6 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import client from '@/lib/backend/client';
 
 interface Step1Props {
   diaryData: DiaryFormData;
@@ -37,20 +38,19 @@ export default function Step1({ diaryData, isAnalyzing, onUpdateDiary, onUpdateW
       formData.append('image_files', frontFile);
       formData.append('image_files', backFile);
 
-      const response = await fetch('http://localhost:8000/api/v1/diary/wine-analysis', {
-        method: 'POST',
-        body: formData,
+      // openapi-fetch를 사용한 API 호출
+      const { data: result, error } = await client.POST('/api/v1/diary/wine-analysis', {
+        body: formData as any, // FormData 타입 우회
       });
 
-      if (!response.ok) {
-        throw new Error(`API 오류: ${response.status}`);
+      if (error) {
+        throw new Error(`API 오류: ${error}`);
       }
 
-      const result = await response.json();
       console.log('API 응답:', result);
 
       // 새로운 API 응답 형식에 맞게 처리
-      if (result.analysis_result?.success && result.analysis_result?.analysis?.wine_analysis) {
+      if (result?.analysis_result?.success && result.analysis_result?.analysis?.wine_analysis) {
         const wineAnalysisData = result.analysis_result.analysis.wine_analysis;
 
         const analysisResult = {

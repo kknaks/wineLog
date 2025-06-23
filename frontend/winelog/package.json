@@ -23,6 +23,7 @@
     "lucide-react": "^0.518.0",
     "modern-screenshot": "^4.6.4",
     "next": "15.3.4",
+    "openapi-fetch": "^0.14.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "tailwind-merge": "^3.3.1"

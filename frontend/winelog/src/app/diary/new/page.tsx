@@ -11,6 +11,7 @@ import Step5 from './components/Step5';
 import { DiaryFormData } from '@/lib/types/diary';
 import { WineData } from '@/lib/types/wine';
 import { Button } from '@/components/ui/button';
+import client from '@/lib/backend/client';
 
 export default function NewWineDiary() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -111,18 +112,16 @@ export default function NewWineDiary() {
         }
       });
 
-      // API 호출
-      const response = await fetch('/api/diary/save', {
-        method: 'POST',
-        body: formData,
+      // API 호출 (openapi-fetch 사용)
+      const { data, error } = await client.POST('/api/diary/save', {
+        body: formData as any, // FormData 타입 우회
       });
 
-      if (!response.ok) {
-        throw new Error(`API 요청 실패: ${response.status} ${response.statusText}`);
+      if (error) {
+        throw new Error(`API 요청 실패: ${error}`);
       }
 
-      const result = await response.json();
-      console.log('저장 결과:', result);
+      console.log('저장 결과:', data);
 
       // 저장 성공 시 홈으로 이동 또는 성공 메시지 표시
       alert('와인 일기가 성공적으로 저장되었습니다!');

@@ -182,7 +182,6 @@ async def analyze_wine_taste(request: WineTasteRequest):
                 "acidity": result.get("acidity", 50),
                 "tannin": result.get("tannin", 50),
                 "body": result.get("body", 50),
-                "alcohol": result.get("alcohol", 50)
             }
         }
         print("\n최종 결과:", final_result)

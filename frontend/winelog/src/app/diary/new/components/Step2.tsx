@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { Slider } from '@/components/ui/slider';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import client from '@/lib/backend/client';
 
 interface Step2Props {
   diaryData: DiaryFormData;
@@ -35,28 +36,23 @@ export default function Step2({ diaryData, onUpdateDiary, onUpdateWine }: Step2P
 
       setIsSearching(true);
       try {
-        const response = await fetch('http://localhost:8000/api/v1/diary/wine-taste', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
+        // openapi-fetch를 사용한 API 호출
+        const { data: result, error } = await client.POST('/api/v1/diary/wine-taste', {
+          body: {
             name: diaryData.wineData.name,
             origin: diaryData.wineData.origin,
             grape: diaryData.wineData.grape,
             year: diaryData.wineData.year,
             type: diaryData.wineData.type,
-          }),
+          },
         });
 
-        if (!response.ok) {
+        if (error) {
           throw new Error('검색 중 오류가 발생했습니다');
         }
 
-        const result = await response.json();
-
         // 검색 결과가 있으면 테이스팅 노트 데이터 업데이트
-        if (result.taste_result?.tastingNote) {
+        if (result?.taste_result?.tastingNote) {
           const tastingNote = result.taste_result.tastingNote;
           onUpdateWine({
             aromaNote: tastingNote.aroma || '',
