@@ -36,5 +36,14 @@ def read_root():
         "version": "1.0.0",
         "status": "running",
         "docs": "/docs",
-        "health_check": "/api/v1/health"
+        "health_check": "/health"
+    }
+
+@app.get("/health")
+def health_check():
+    """간단한 헬스체크 엔드포인트"""
+    return {
+        "status": "healthy",
+        "app": settings.app_name,
+        "version": "1.0.0"
     }

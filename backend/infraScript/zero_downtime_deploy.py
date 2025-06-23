@@ -90,7 +90,7 @@ class ServiceManager:
 
     # 서비스 상태를 확인하는 함수
     def _is_service_up(self, port: int) -> bool:
-        url = f"http://127.0.0.1:{port}/actuator/health"  # FastAPI 헬스체크 엔드포인트로 조정
+        url = f"http://127.0.0.1:{port}/health"  # FastAPI 헬스체크 엔드포인트
         try:
             response = requests.get(url, timeout=5)  # 5초 이내 응답 없으면 예외 발생
             if response.status_code == 200:
