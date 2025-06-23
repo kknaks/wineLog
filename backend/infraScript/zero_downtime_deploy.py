@@ -73,7 +73,7 @@ class ServiceManager:
             f"docker run -d --name={name} --network=wine_log_backend "
             f"--network-alias=wine_log_backend "
             f"--restart unless-stopped -p {port}:7000 -e TZ=Asia/Seoul "
-            f"--pull always ghcr.io/wine_log/backend")
+            f"--pull always ghcr.io/kknaks/wine_log")
 
     def _switch_port(self) -> None:
         # Socat 포트를 전환하는 함수
