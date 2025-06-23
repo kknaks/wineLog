@@ -12,6 +12,9 @@ RUN pip install --no-cache-dir --upgrade pip && \
 # 어플리케이션 코드 복사
 COPY . .
 
+# app 디렉토리로 이동
+WORKDIR /app/app
+
 # 환경 변수 설정
 ENV PYTHONUNBUFFERED=1
 
@@ -22,4 +25,4 @@ COPY .env .env
 EXPOSE 7000
 
 # 애플리케이션 실행
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "7000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7000"]
