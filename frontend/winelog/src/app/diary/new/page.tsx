@@ -12,6 +12,7 @@ import { DiaryFormData } from '@/lib/types/diary';
 import { WineData } from '@/lib/types/wine';
 import { Button } from '@/components/ui/button';
 import client from '@/lib/backend/client';
+import { httpFormDataRequest } from '@/lib/utils/http';
 
 export default function NewWineDiary() {
   const [currentStep, setCurrentStep] = useState(1);
@@ -112,16 +113,14 @@ export default function NewWineDiary() {
         }
       });
 
-      // API 호출 (openapi-fetch 사용)
-      const { data, error } = await client.POST('/api/diary/save', {
-        body: formData as any, // FormData 타입 우회
-      });
+      // 안전한 HTTP 클라이언트 사용 (네이티브 앱에서 CORS 우회)
+      const response = await httpFormDataRequest('/api/diary/save', formData);
 
-      if (error) {
-        throw new Error(`API 요청 실패: ${error}`);
+      if (response.status !== 200) {
+        throw new Error(`API 요청 실패: ${response.status}`);
       }
 
-      console.log('저장 결과:', data);
+      console.log('저장 결과:', response.data);
 
       // 저장 성공 시 홈으로 이동 또는 성공 메시지 표시
       alert('와인 일기가 성공적으로 저장되었습니다!');

@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react';
 import Image from 'next/image';
 import { DiaryFormData } from '@/lib/types/diary';
 import { WineData } from '@/lib/types/wine';
-import { takeWinePhoto, pickWinePhoto, isNativeApp, triggerHaptic } from '@/lib/utils/mobile';
+import { takeWinePhoto, pickWinePhoto, isNativeApp, triggerHaptic } from '@/utils/mobile';
 import { ImpactStyle } from '@capacitor/haptics';
 
 interface Step3Props {
@@ -18,32 +18,29 @@ export default function Step3({ diaryData, onUpdateDiary, onUpdateWine }: Step3P
   const streamRef = useRef<MediaStream | null>(null);
   const [isCameraReady, setIsCameraReady] = useState(false);
   const [isNative, setIsNative] = useState(false);
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment'); // 후면 카메라가 기본
 
   useEffect(() => {
     // 네이티브 앱인지 확인
     setIsNative(isNativeApp());
-
-    // 모든 플랫폼에서 카메라 스트림 시작
-    startCamera();
+    
+    // 웹에서만 카메라 스트림 시작
+    if (!isNativeApp()) {
+      startCamera();
+    }
 
     return () => {
       if (streamRef.current) {
         streamRef.current.getTracks().forEach(track => track.stop());
       }
     };
-  }, [facingMode]); // facingMode가 변경될 때마다 카메라 재시작
+  }, []);
 
   const startCamera = async () => {
-    try {
-      // 기존 스트림이 있으면 정리
-      if (streamRef.current) {
-        streamRef.current.getTracks().forEach(track => track.stop());
-        setIsCameraReady(false);
-      }
+    if (isNativeApp()) return; // 네이티브 앱에서는 실행하지 않음
 
+    try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode },
+        video: { facingMode: 'environment' },
         audio: false
       });
 
@@ -79,36 +76,22 @@ export default function Step3({ diaryData, onUpdateDiary, onUpdateWine }: Step3P
     }
   };
 
-  // 모바일용 촬영 함수 - 웹 캡처 방식 사용
+  // 모바일용 촬영 함수
   const handleMobileCapture = async () => {
-    if (isNative) {
-      await triggerHaptic(ImpactStyle.Medium);
+    await triggerHaptic(ImpactStyle.Medium);
+    const photoUrl = await takeWinePhoto();
+    if (photoUrl) {
+      onUpdateDiary({ thumbnailImage: photoUrl });
     }
-
-    // 모든 플랫폼에서 웹캠 스트림 캡처 방식 사용
-    handleWebCapture();
   };
 
   // 갤러리에서 선택
   const handlePickFromGallery = async () => {
     if (isNative) {
       await triggerHaptic(ImpactStyle.Light);
-      try {
-        const photoUrl = await pickWinePhoto();
-        if (photoUrl) {
-          onUpdateDiary({ thumbnailImage: photoUrl });
-        } else {
-          console.log('사진 선택이 취소되었습니다.');
-        }
-      } catch (error) {
-        // 사용자 취소는 정상 동작이므로 에러로 처리하지 않음
-        if (error instanceof Error && error.message && error.message.includes('cancelled')) {
-          console.log('사용자가 갤러리 선택을 취소했습니다.');
-          return;
-        }
-
-        console.error('갤러리 접근 중 오류 발생:', error);
-        alert('갤러리에 접근할 수 없습니다. 설정에서 사진 라이브러리 권한을 확인해주세요.');
+      const photoUrl = await pickWinePhoto();
+      if (photoUrl) {
+        onUpdateDiary({ thumbnailImage: photoUrl });
       }
     } else {
       // 웹에서는 파일 input 사용
@@ -136,20 +119,20 @@ export default function Step3({ diaryData, onUpdateDiary, onUpdateWine }: Step3P
       await triggerHaptic(ImpactStyle.Light);
     }
     onUpdateDiary({ thumbnailImage: null });
-
-    // 모든 플랫폼에서 카메라 재시작
-    startCamera();
+    
+    // 웹에서만 카메라 재시작
+    if (!isNative) {
+      startCamera();
+    }
   };
 
-  // 카메라 전/후면 전환
+  // 카메라 전/후면 전환 (모바일에서만)
   const handleCameraFlip = async () => {
     if (isNative) {
       await triggerHaptic(ImpactStyle.Light);
+      // 모바일에서 전/후면 카메라 전환은 촬영 시 설정으로 처리
+      handleMobileCapture();
     }
-
-    // 전면/후면 카메라 전환
-    setFacingMode(prevMode => prevMode === 'environment' ? 'user' : 'environment');
-    console.log('카메라 전환:', facingMode === 'environment' ? '전면으로' : '후면으로');
   };
 
   return (
@@ -167,8 +150,16 @@ export default function Step3({ diaryData, onUpdateDiary, onUpdateWine }: Step3P
                 fill
                 className="object-cover"
               />
+            ) : isNative ? (
+              // 네이티브 앱에서는 카메라 플레이스홀더
+              <div className="w-full h-full flex items-center justify-center bg-gray-200">
+                <div className="text-center">
+                  <div className="text-6xl mb-4">📷</div>
+                  <p className="text-gray-600">아래 버튼을 눌러<br/>와인 사진을 촬영하세요</p>
+                </div>
+              </div>
             ) : (
-              // 모든 플랫폼에서 비디오 스트림 표시
+              // 웹에서는 비디오 스트림
               <video
                 ref={videoRef}
                 autoPlay
@@ -188,12 +179,7 @@ export default function Step3({ diaryData, onUpdateDiary, onUpdateWine }: Step3P
             className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
             onClick={handlePickFromGallery}
           >
-            <Image
-              src="/images/diary/gallery.svg"
-              alt="Gallery"
-              width={24}
-              height={24}
-            />
+            <div className="text-2xl">🖼️</div>
           </button>
 
           {/* 메인 촬영/재촬영 버튼 */}
@@ -210,7 +196,7 @@ export default function Step3({ diaryData, onUpdateDiary, onUpdateWine }: Step3P
             <button
               onClick={isNative ? handleMobileCapture : handleWebCapture}
               className="w-16 h-16 bg-red-500 rounded-full flex items-center justify-center hover:bg-red-600 transition-colors"
-              disabled={!isCameraReady}
+              disabled={!isNative && !isCameraReady}
             >
               <div className="w-14 h-14 border-2 border-white rounded-full"></div>
             </button>
@@ -219,14 +205,9 @@ export default function Step3({ diaryData, onUpdateDiary, onUpdateWine }: Step3P
           {/* 카메라 전환/설정 버튼 */}
           <button
             className="w-12 h-12 flex items-center justify-center rounded-full bg-gray-200 hover:bg-gray-300 transition-colors"
-            onClick={handleCameraFlip}
+            onClick={isNative ? handleCameraFlip : () => {}}
           >
-            <Image
-              src="/images/diary/switch.svg"
-              alt="Switch Camera"
-              width={24}
-              height={24}
-            />
+            <div className="text-2xl">🔄</div>
           </button>
         </div>
       </div>

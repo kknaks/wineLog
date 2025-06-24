@@ -6,6 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Plus } from 'lucide-react';
+import { isNativeApp, requestCameraPermissions } from '@/lib/utils/mobile';
 import {
   Select,
   SelectContent,
@@ -14,6 +15,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import client from '@/lib/backend/client';
+import { httpFormDataRequest } from '@/lib/utils/http';
 
 interface Step1Props {
   diaryData: DiaryFormData;
@@ -28,6 +30,18 @@ export default function Step1({ diaryData, isAnalyzing, onUpdateDiary, onUpdateW
   const [frontImageFile, setFrontImageFile] = useState<File | null>(null);
   const [backImageFile, setBackImageFile] = useState<File | null>(null);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
+  // 네이티브 앱에서 권한 미리 요청
+  useEffect(() => {
+    if (isNativeApp()) {
+      requestCameraPermissions()
+        .then((permissions) => {
+          console.log('Step1 - 카메라 권한 요청 성공:', permissions);
+        })
+        .catch((error) => {
+          console.error('Step1 - 카메라 권한 요청 실패:', error);
+        });
+    }
+  }, []);
 
   // API 호출 함수
   const analyzeWineImages = async (frontFile: File, backFile: File) => {
@@ -38,14 +52,14 @@ export default function Step1({ diaryData, isAnalyzing, onUpdateDiary, onUpdateW
       formData.append('image_files', frontFile);
       formData.append('image_files', backFile);
 
-      // openapi-fetch를 사용한 API 호출
-      const { data: result, error } = await client.POST('/api/v1/diary/wine-analysis', {
-        body: formData as any, // FormData 타입 우회
-      });
+      // 안전한 HTTP 클라이언트 사용 (네이티브 앱에서 CORS 우회)
+      const response = await httpFormDataRequest('/api/v1/diary/wine-analysis', formData);
 
-      if (error) {
-        throw new Error(`API 오류: ${error}`);
+      if (response.status !== 200) {
+        throw new Error(`API 오류: ${response.status}`);
       }
+
+      const result = response.data;
 
       console.log('API 응답:', result);
 
