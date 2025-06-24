@@ -22,7 +22,8 @@ app.add_middleware(
     allow_origins=[
         "http://localhost:3000",  # 로컬 개발용
         "https://wine-log.kknaks.site",  # 프로덕션 프론트엔드
-        "https://www.wine-log.kknaks.site"
+        "https://www.wine-log.kknaks.site",
+        "winelog://app.kknaks.local",  # WineLog 앱 전용 origin (안전함)
     ],
     allow_credentials=True,
     allow_methods=["*"],  # 모든 HTTP 메서드 허용

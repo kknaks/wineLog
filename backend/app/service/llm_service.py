@@ -56,6 +56,7 @@ async def analyze_wine_images(image_files: List[UploadFile]):
         # 프롬프트 작성
         prompt = """
         당신은 전문 와인 소믈리에입니다. 이 와인 병 이미지들을 분석하여 와인에 대한 한국어로 상세 정보를 제공해주세요.
+        검색은 vivino.com 사이트를 참고하여 와인 정보를 찾아주세요.
         와인 병 이미지는 와인 병의 앞면과 뒷면 두 장입니다.
         확인이 안되는 부분은 반드시 빈 문자열("")로 응답해주세요. null이나 undefined는 사용하지 마세요.
         

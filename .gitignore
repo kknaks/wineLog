@@ -41,4 +41,5 @@ yarn-error.log*
 next-env.d.ts
 
 ./backend/.env
-./backend/.env.default
+.env.default
+.env2.default
