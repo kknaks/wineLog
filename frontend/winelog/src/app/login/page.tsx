@@ -22,9 +22,7 @@ export default function LoginPage() {
 
       // 백엔드에서 카카오 로그인 URL 가져오기
       console.log('API 호출 시작: /api/v1/auth/kakao/login');
-      const { data, error } = await (client as any).GET('/api/v1/auth/kakao/login', {
-        params: { platform }
-      });
+      const { data, error } = await (client as any).GET(`/api/v1/auth/kakao/login?platform=${platform}`);
 
       console.log('API 응답 - data:', data);
       console.log('API 응답 - error:', error);

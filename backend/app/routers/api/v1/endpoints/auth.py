@@ -22,9 +22,15 @@ async def kakao_login(platform: str = Query("web")):
 async def kakao_callback(
     response: Response,
     code: str = Query(...),
-    platform: str = Query("web"),
+    state: str = Query(None),
     db: Session = Depends(get_db)
 ):
+    # state 파라미터에서 플랫폼 정보 추출
+    platform = "web"
+    if state:
+        state_params = dict(param.split('=') for param in state.split('&'))
+        platform = state_params.get('platform', 'web')
+
     # 액세스 토큰 받기
     access_token = await kakao_service.get_access_token(code, platform)
     if not access_token:
@@ -49,15 +55,13 @@ async def kakao_callback(
         # 새 사용자 생성
         user_service.create_user(db, user_info, tokens["refresh_token"])
     
-    # 모바일 앱인 경우 JSON 응답 반환
+    # 모바일 앱인 경우 앱으로 리다이렉트
     if platform in ["ios", "android"]:
-        return {
-            "success": True,
-            "user": user_info,
-            "tokens": tokens
-        }
+        # 토큰을 쿼리 파라미터로 전달하여 앱으로 리다이렉트
+        app_redirect_url = f"winelog://oauth/callback?access_token={tokens['access_token']}&refresh_token={tokens['refresh_token']}"
+        return RedirectResponse(url=app_redirect_url)
     
-    # 웹인 경우 리다이렉션 응답 생성
+    # 웹인 경우 프론트엔드로 리다이렉트
     redirect_response = RedirectResponse(url=front_url, status_code=302)
     
     # 쿠키에 토큰 설정

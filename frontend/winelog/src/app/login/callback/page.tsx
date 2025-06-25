@@ -19,17 +19,40 @@ function KakaoCallbackContent() {
       try {
         const code = searchParams.get('code');
         const error = searchParams.get('error');
+        const accessToken = searchParams.get('access_token');
+        const refreshToken = searchParams.get('refresh_token');
 
         if (error) {
           throw new Error('로그인이 취소되었습니다.');
         }
 
+        // 앱 환경에서 토큰이 직접 전달된 경우
+        if (accessToken && refreshToken) {
+          setStatus('success');
+
+          // 토큰 정보로 사용자 정보 설정
+          setLoginMember({
+            accessToken,
+            refreshToken
+          });
+
+          console.log('앱 로그인 성공');
+
+          // 2초 후 홈으로 이동
+          setTimeout(() => {
+            router.push('/');
+          }, 2000);
+          return;
+        }
+
+        // 웹 환경에서 code로 처리
         if (!code) {
           throw new Error('인증 코드를 받지 못했습니다.');
         }
 
         // 백엔드로 인증 코드 전송
-        const { data, error: apiError } = await (client as any).GET(`/api/v1/auth/kakao/callback?code=${code}`);
+        const platform = Capacitor.isNativePlatform() ? Capacitor.getPlatform() : 'web';
+        const { data, error: apiError } = await (client as any).GET(`/api/v1/auth/kakao/callback?code=${code}&platform=${platform}`);
 
         if (apiError) {
           throw new Error('로그인 처리 중 오류가 발생했습니다.');
@@ -45,12 +68,7 @@ function KakaoCallbackContent() {
             setLoginMember(userData);
           }
 
-          console.log('로그인 성공:', data);
-
-          // 네이티브 앱 환경에서는 브라우저 닫고 앱으로 돌아가기
-          if (Capacitor.isNativePlatform()) {
-            await Browser.close();
-          }
+          console.log('웹 로그인 성공:', data);
 
           // 2초 후 홈으로 이동
           setTimeout(() => {
