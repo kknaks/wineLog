@@ -3,6 +3,8 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import client from '@/lib/backend/client';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
@@ -13,9 +15,16 @@ export default function LoginPage() {
       setIsLoading(true);
       console.log('카카오 로그인 시작...');
 
+      // 플랫폼 감지
+      const platform = Capacitor.isNativePlatform()
+        ? Capacitor.getPlatform()
+        : 'web';
+
       // 백엔드에서 카카오 로그인 URL 가져오기
       console.log('API 호출 시작: /api/v1/auth/kakao/login');
-      const { data, error } = await (client as any).GET('/api/v1/auth/kakao/login');
+      const { data, error } = await (client as any).GET('/api/v1/auth/kakao/login', {
+        params: { platform }
+      });
 
       console.log('API 응답 - data:', data);
       console.log('API 응답 - error:', error);
@@ -27,8 +36,18 @@ export default function LoginPage() {
 
       if (data && (data as any).login_url) {
         console.log('로그인 URL:', (data as any).login_url);
-        // 카카오 로그인 페이지로 리다이렉트
-        window.location.href = (data as any).login_url;
+
+        // Capacitor 환경에서는 인앱 브라우저 사용
+        if (Capacitor.isNativePlatform()) {
+          await Browser.open({
+            url: (data as any).login_url,
+            windowName: '_self',
+            presentationStyle: 'fullscreen'
+          });
+        } else {
+          // 웹 환경에서는 일반 리다이렉트
+          window.location.href = (data as any).login_url;
+        }
       } else {
         console.error('로그인 URL이 없음. 응답 데이터:', data);
         throw new Error('로그인 URL이 응답에 없습니다.');

@@ -4,6 +4,8 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import client from '@/lib/backend/client';
 import { useGlobalLoginMember } from '@/stores/auth/loginMember';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 function KakaoCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -44,6 +46,11 @@ function KakaoCallbackContent() {
           }
 
           console.log('로그인 성공:', data);
+
+          // 네이티브 앱 환경에서는 브라우저 닫고 앱으로 돌아가기
+          if (Capacitor.isNativePlatform()) {
+            await Browser.close();
+          }
 
           // 2초 후 홈으로 이동
           setTimeout(() => {

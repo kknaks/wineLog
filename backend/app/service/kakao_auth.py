@@ -3,11 +3,19 @@ from typing import Optional
 from core.config import settings
 
 class KakaoAuthService:
-    def get_authorization_url(self, state: str = None) -> str:
+    def get_authorization_url(self, platform: str = "web", state: str = None) -> str:
         """카카오 로그인 페이지 URL 생성"""
+        # 플랫폼별 리다이렉트 URL 설정
+        if platform == "ios":
+            redirect_uri = "winelog://oauth/callback"
+        elif platform == "android":
+            redirect_uri = "winelog://oauth/callback"
+        else:
+            redirect_uri = settings.KAKAO_REDIRECT_URI
+
         params = {
             "client_id": settings.KAKAO_CLIENT_ID,
-            "redirect_uri": settings.KAKAO_REDIRECT_URI,
+            "redirect_uri": redirect_uri,
             "response_type": "code",
         }
         if state:
@@ -16,12 +24,20 @@ class KakaoAuthService:
         query_string = "&".join([f"{k}={v}" for k, v in params.items()])
         return f"{settings.KAKAO_AUTH_URL}?{query_string}"
     
-    async def get_access_token(self, code: str) -> Optional[str]:
+    async def get_access_token(self, code: str, platform: str = "web") -> Optional[str]:
         """인가 코드로 액세스 토큰 받기"""
+        # 플랫폼별 리다이렉트 URL 설정
+        if platform == "ios":
+            redirect_uri = "winelog://oauth/callback"
+        elif platform == "android":
+            redirect_uri = "winelog://oauth/callback"
+        else:
+            redirect_uri = settings.KAKAO_REDIRECT_URI
+
         data = {
             "grant_type": "authorization_code",
             "client_id": settings.KAKAO_CLIENT_ID,
-            "redirect_uri": settings.KAKAO_REDIRECT_URI,
+            "redirect_uri": redirect_uri,
             "code": code,
         }
         

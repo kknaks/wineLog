@@ -14,14 +14,19 @@ user_service = UserService()
 front_url = settings.front_url
 
 @router.get("/kakao/login")
-async def kakao_login():
-    login_url = kakao_service.get_authorization_url()
+async def kakao_login(platform: str = Query("web")):
+    login_url = kakao_service.get_authorization_url(platform=platform)
     return {"login_url": login_url}
 
 @router.get("/kakao/callback")
-async def kakao_callback(response: Response, code: str = Query(...), db: Session = Depends(get_db)):
+async def kakao_callback(
+    response: Response,
+    code: str = Query(...),
+    platform: str = Query("web"),
+    db: Session = Depends(get_db)
+):
     # 액세스 토큰 받기
-    access_token = await kakao_service.get_access_token(code)
+    access_token = await kakao_service.get_access_token(code, platform)
     if not access_token:
         raise HTTPException(status_code=400, detail="Failed to get access token")
     
@@ -44,7 +49,15 @@ async def kakao_callback(response: Response, code: str = Query(...), db: Session
         # 새 사용자 생성
         user_service.create_user(db, user_info, tokens["refresh_token"])
     
-    # 리다이렉션 응답 생성 (프론트엔드 홈으로)
+    # 모바일 앱인 경우 JSON 응답 반환
+    if platform in ["ios", "android"]:
+        return {
+            "success": True,
+            "user": user_info,
+            "tokens": tokens
+        }
+    
+    # 웹인 경우 리다이렉션 응답 생성
     redirect_response = RedirectResponse(url=front_url, status_code=302)
     
     # 쿠키에 토큰 설정
