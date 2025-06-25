@@ -73,6 +73,9 @@ class Settings(BaseSettings):
   upload_dir: str = os.getenv("UPLOAD_DIR", "temp_uploads")
   
   perplexity_api_key: str = os.getenv("PERPLEXITY_API_KEY", "")
+
+  # Front URL
+  front_url: str = os.getenv("FRONT_URL", "http://localhost:3000")
   
   class Config:
       env_file = ".env"

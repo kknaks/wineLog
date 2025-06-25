@@ -6,10 +6,12 @@ from service.user_service import UserService
 from utils.auth import create_access_token, create_token_pair, verify_token, get_current_user
 from db.database import get_db
 from models.user import User
+from core.config import settings
 
 router = APIRouter()
 kakao_service = KakaoAuthService()
 user_service = UserService()
+front_url = settings.front_url
 
 @router.get("/kakao/login")
 async def kakao_login():
@@ -43,7 +45,7 @@ async def kakao_callback(response: Response, code: str = Query(...), db: Session
         user_service.create_user(db, user_info, tokens["refresh_token"])
     
     # 리다이렉션 응답 생성 (프론트엔드 홈으로)
-    redirect_response = RedirectResponse(url="http://localhost:3000/", status_code=302)
+    redirect_response = RedirectResponse(url=front_url, status_code=302)
     
     # 쿠키에 토큰 설정
     redirect_response.set_cookie(
