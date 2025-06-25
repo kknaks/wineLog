@@ -43,7 +43,12 @@ export default function Step3({ diaryData, onUpdateDiary, onUpdateWine }: Step3P
       }
 
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode },
+        video: {
+          facingMode,
+          width: { ideal: 1920, min: 1280 },
+          height: { ideal: 1080, min: 720 },
+          aspectRatio: { ideal: 16 / 9 }
+        },
         audio: false
       });
 
@@ -54,6 +59,22 @@ export default function Step3({ diaryData, onUpdateDiary, onUpdateWine }: Step3P
       }
     } catch (err) {
       console.error('카메라를 시작할 수 없습니다:', err);
+
+      // 고해상도 실패 시 기본 설정으로 재시도
+      try {
+        const fallbackStream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode },
+          audio: false
+        });
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = fallbackStream;
+          streamRef.current = fallbackStream;
+          setIsCameraReady(true);
+        }
+      } catch (fallbackErr) {
+        console.error('기본 카메라 설정도 실패:', fallbackErr);
+      }
     }
   };
 
@@ -68,8 +89,16 @@ export default function Step3({ diaryData, onUpdateDiary, onUpdateWine }: Step3P
 
     if (ctx && videoRef.current) {
       ctx.drawImage(videoRef.current, 0, 0);
-      const imageDataUrl = canvas.toDataURL('image/jpeg');
-      onUpdateDiary({ thumbnailImage: imageDataUrl });
+      // 고화질 JPEG로 저장 (품질 0.95)
+      const imageDataUrl = canvas.toDataURL('image/jpeg', 0.95);
+
+      // File 객체로도 변환
+      canvas.toBlob((blob) => {
+        if (blob) {
+          const file = new File([blob], `thumbnail-${Date.now()}.jpg`, { type: 'image/jpeg' });
+          onUpdateDiary({ thumbnailImage: imageDataUrl, thumbnailImageFile: file });
+        }
+      }, 'image/jpeg', 0.95);
 
       // Stop the camera after capturing
       if (streamRef.current) {
@@ -121,7 +150,10 @@ export default function Step3({ diaryData, onUpdateDiary, onUpdateWine }: Step3P
           const reader = new FileReader();
           reader.onload = () => {
             if (reader.result) {
-              onUpdateDiary({ thumbnailImage: reader.result as string });
+              onUpdateDiary({
+                thumbnailImage: reader.result as string,
+                thumbnailImageFile: file
+              });
             }
           };
           reader.readAsDataURL(file);

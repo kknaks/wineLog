@@ -8,8 +8,8 @@ export default function Navbar() {
 
   return (
     <nav className="bg-white shadow-lg border-t border-gray-200">
-      <div className="frame-17 py-4 mb-5 mt-3">
-        <div className="flex justify-between items-center max-w-screen-sm mx-auto px-8">
+      <div className="frame-17 py-4 mb-5 mt-1">
+        <div className="grid grid-cols-5 gap-2 items-center max-w-screen-sm mx-auto px-4">
           <Link href="/diary" className="flex flex-col items-center gap-1">
             <svg
               width="28"

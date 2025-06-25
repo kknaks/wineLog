@@ -37,10 +37,9 @@ export default function Step2({ diaryData, onUpdateDiary, onUpdateWine }: Step2P
 
       setIsSearching(true);
       try {
-        // 안전한 HTTP 클라이언트 사용 (네이티브 앱에서 CORS 우회)
-        const response = await httpRequest('/api/v1/diary/wine-taste', {
-          method: 'POST',
-          data: {
+        // 기존 openapi-fetch 클라이언트 사용
+        const { data: result, error } = await client.POST('/api/v1/diary/wine-taste', {
+          body: {
             name: diaryData.wineData.name,
             origin: diaryData.wineData.origin,
             grape: diaryData.wineData.grape,
@@ -49,11 +48,9 @@ export default function Step2({ diaryData, onUpdateDiary, onUpdateWine }: Step2P
           },
         });
 
-        if (response.status !== 200) {
+        if (error) {
           throw new Error('검색 중 오류가 발생했습니다');
         }
-
-        const result = response.data;
 
         // 검색 결과가 있으면 테이스팅 노트 데이터 업데이트
         if (result?.taste_result?.tastingNote) {

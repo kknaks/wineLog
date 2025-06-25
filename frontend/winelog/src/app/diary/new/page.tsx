@@ -22,8 +22,6 @@ export default function NewWineDiary() {
   const [diaryData, setDiaryData] = useState<DiaryFormData>({
     wineData: {
       id: 0,
-      frontImage: null,
-      backImage: null,
       name: '',
       origin: '',
       grape: '',
@@ -38,6 +36,8 @@ export default function NewWineDiary() {
       tannin: 50,
       body: 50,
     },
+    frontImage: null,
+    backImage: null,
     thumbnailImage: null,
     downloadImage: null,
     drinkDate: new Date().toISOString().split('T')[0],
@@ -84,18 +84,18 @@ export default function NewWineDiary() {
       formData.append('price', diaryData.price || '');
       formData.append('isPublic', (diaryData.isPublic || false).toString());
 
-      // 이미지 파일들 추가
-      if (diaryData.wineData.frontImage) {
-        formData.append('frontImage', diaryData.wineData.frontImage);
+      // 이미지 파일들 추가 (File 객체 사용)
+      if (diaryData.frontImageFile) {
+        formData.append('frontImage', diaryData.frontImageFile);
       }
-      if (diaryData.wineData.backImage) {
-        formData.append('backImage', diaryData.wineData.backImage);
+      if (diaryData.backImageFile) {
+        formData.append('backImage', diaryData.backImageFile);
       }
-      if (diaryData.thumbnailImage) {
-        formData.append('thumbnailImage', diaryData.thumbnailImage);
+      if (diaryData.thumbnailImageFile) {
+        formData.append('thumbnailImage', diaryData.thumbnailImageFile);
       }
-      if (diaryData.downloadImage) {
-        formData.append('downloadImage', diaryData.downloadImage);
+      if (diaryData.downloadImageFile) {
+        formData.append('downloadImage', diaryData.downloadImageFile);
       }
 
       console.log('전송할 FormData:', {
@@ -106,21 +106,23 @@ export default function NewWineDiary() {
         price: diaryData.price,
         isPublic: diaryData.isPublic,
         hasImages: {
-          frontImage: !!diaryData.wineData.frontImage,
-          backImage: !!diaryData.wineData.backImage,
-          thumbnailImage: !!diaryData.thumbnailImage,
-          downloadImage: !!diaryData.downloadImage,
+          frontImage: !!diaryData.frontImageFile,
+          backImage: !!diaryData.backImageFile,
+          thumbnailImage: !!diaryData.thumbnailImageFile,
+          downloadImage: !!diaryData.downloadImageFile,
         }
       });
 
-      // 안전한 HTTP 클라이언트 사용 (네이티브 앱에서 CORS 우회)
-      const response = await httpFormDataRequest('/api/diary/save', formData);
+      // 기존 openapi-fetch 클라이언트 사용
+      const { data, error } = await client.POST('/api/v1/diary/save', {
+        body: formData as any, // FormData 타입 우회
+      });
 
-      if (response.status !== 200) {
-        throw new Error(`API 요청 실패: ${response.status}`);
+      if (error) {
+        throw new Error(`API 요청 실패: ${error}`);
       }
 
-      console.log('저장 결과:', response.data);
+      console.log('저장 결과:', data);
 
       // 저장 성공 시 홈으로 이동 또는 성공 메시지 표시
       alert('와인 일기가 성공적으로 저장되었습니다!');

@@ -5,6 +5,8 @@ from core.config import settings
 from routers.api.v1.router import api_router
 # 모델 import - 테이블 생성을 위해 필요
 from models.wine import Wine
+from models.diary import Diary
+from models.user import User
 
 # 데이터베이스 테이블 생성
 Base.metadata.create_all(bind=engine)

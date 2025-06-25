@@ -19,6 +19,24 @@ class Settings(BaseSettings):
   # algorithm: str = os.getenv("ALGORITHM", "HS256")
   # access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
 
+  #oauth2
+  secret_key: str = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+  algorithm: str = os.getenv("ALGORITHM", "HS256")
+  access_token_expire_minutes: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", "30"))
+  refresh_token_expire_days: int = int(os.getenv("REFRESH_TOKEN_EXPIRE_DAYS", "60"))
+
+  #kakao
+  KAKAO_CLIENT_ID: str = os.getenv("KAKAO_CLIENT_ID", "")
+  KAKAO_CLIENT_SECRET: str = os.getenv("KAKAO_CLIENT_SECRET", "")
+  KAKAO_REDIRECT_URI: str = os.getenv("KAKAO_REDIRECT_URI", "")
+  SECRET_KEY: str = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")
+  
+  # 카카오 OAuth URLs
+  KAKAO_AUTH_URL: str = "https://kauth.kakao.com/oauth/authorize"
+  KAKAO_TOKEN_URL: str = "https://kauth.kakao.com/oauth/token"
+  KAKAO_USER_INFO_URL: str = "https://kapi.kakao.com/v2/user/me"
+
+
   # Database settings
   db_host: str = os.getenv("DB_HOST", "localhost")
   db_port: int = int(os.getenv("DB_PORT", "5432"))
@@ -37,7 +55,7 @@ class Settings(BaseSettings):
   db_echo: bool = os.getenv("DB_ECHO", str(debug)).lower() == "true"
 
   #AI
-  google_api_key: str = os.getenv("GOOGLE_API_KEY")
+  google_api_key: str = os.getenv("GOOGLE_API_KEY", "")
 
   #LLM
   llm_model: str = os.getenv("LLM_MODEL", "gemini-2.0-flash-001")
@@ -54,7 +72,7 @@ class Settings(BaseSettings):
   max_file_size: int = int(os.getenv("MAX_FILE_SIZE", "10485760"))  # 10MB
   upload_dir: str = os.getenv("UPLOAD_DIR", "temp_uploads")
   
-  perplexity_api_key: str = os.getenv("PERPLEXITY_API_KEY")
+  perplexity_api_key: str = os.getenv("PERPLEXITY_API_KEY", "")
   
   class Config:
       env_file = ".env"

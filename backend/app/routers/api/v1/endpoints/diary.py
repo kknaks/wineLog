@@ -1,11 +1,16 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
+from fastapi import APIRouter, Depends, UploadFile, File, HTTPException, Form
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
+import json
 from db import get_db
 from core.config import settings
 from models.wine import Wine
 from service import llm_service
+from service.diary_service import diary_service
 from schemas.diary import WineTasteRequest
+from utils.storage import ncp_storage
+from utils.auth import get_current_user
+from models.user import User
 
 router = APIRouter()
 
@@ -73,3 +78,72 @@ async def wine_taste(request: WineTasteRequest):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"테이스트 중 오류가 발생했습니다: {str(e)}")
+
+    
+@router.post("/save")
+async def save_diary(
+    wineData: str = Form(...),
+    drinkDate: str = Form(...),
+    rating: str = Form(...),
+    review: str = Form(""),
+    price: str = Form(""),
+    isPublic: str = Form("false"),
+    frontImage: Optional[UploadFile] = File(None),
+    backImage: Optional[UploadFile] = File(None),
+    thumbnailImage: Optional[UploadFile] = File(None),
+    downloadImage: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """
+    와인 일기 저장 엔드포인트
+    FormData로 전송된 데이터를 처리
+    """
+    try:
+        # JSON 문자열을 파싱
+        wine_data = json.loads(wineData)
+        
+        user_id = current_user.id
+        
+        diary_data_for_service = {
+            "rating": rating,
+            "review": review,
+            "price": price,
+            "is_public": isPublic.lower() == "true"
+        }
+        
+        image_files = {
+            "frontImage": frontImage,
+            "backImage": backImage,
+            "thumbnailImage": thumbnailImage,
+            "downloadImage": downloadImage
+        }
+        
+        # Service 계층에서 비즈니스 로직 처리
+        result = await diary_service.create_wine_diary(
+            db=db,
+            user_id=user_id,
+            wine_data=wine_data,
+            diary_data=diary_data_for_service,
+            image_files=image_files
+        )
+        
+        return {
+            "message": result["message"],
+            "diary_id": result["diary_id"],
+            "wine_id": result["wine_id"],
+            "diary_data": {
+                "wine_data": wine_data,
+                "drink_date": drinkDate,
+                "rating": int(rating),
+                "review": review,
+                "price": price,
+                "is_public": isPublic.lower() == "true",
+                "uploaded_images": result["uploaded_images"]
+            }
+        }
+        
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="잘못된 JSON 형식의 wineData입니다")
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"저장 중 오류가 발생했습니다: {str(e)}")

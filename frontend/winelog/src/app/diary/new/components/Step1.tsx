@@ -52,14 +52,14 @@ export default function Step1({ diaryData, isAnalyzing, onUpdateDiary, onUpdateW
       formData.append('image_files', frontFile);
       formData.append('image_files', backFile);
 
-      // 안전한 HTTP 클라이언트 사용 (네이티브 앱에서 CORS 우회)
-      const response = await httpFormDataRequest('/api/v1/diary/wine-analysis', formData);
+      // 기존 openapi-fetch 클라이언트 사용
+      const { data: result, error } = await client.POST('/api/v1/diary/wine-analysis', {
+        body: formData as any, // FormData 타입 우회
+      });
 
-      if (response.status !== 200) {
-        throw new Error(`API 오류: ${response.status}`);
+      if (error) {
+        throw new Error(`API 오류: ${error}`);
       }
-
-      const result = response.data;
 
       console.log('API 응답:', result);
 
@@ -93,20 +93,22 @@ export default function Step1({ diaryData, isAnalyzing, onUpdateDiary, onUpdateW
       const reader = new FileReader();
       reader.onloadend = () => {
         const imageUrl = reader.result as string;
-        const updatedWineData = isFront ? { frontImage: imageUrl } : { backImage: imageUrl };
-        onUpdateWine(updatedWineData);
+        const updatedDiaryData = isFront ? { frontImage: imageUrl } : { backImage: imageUrl };
+        onUpdateDiary(updatedDiaryData);
 
-        // 파일 객체도 별도로 저장
+        // 파일 객체도 별도로 저장하고 부모에게 전달
         if (isFront) {
           setFrontImageFile(file);
+          onUpdateDiary({ frontImageFile: file });
         } else {
           setBackImageFile(file);
+          onUpdateDiary({ backImageFile: file });
         }
 
         // 두 이미지가 모두 있을 때만 분석 시작 (직접입력 모드가 아닐 때만)
         const bothImagesPresent = isFront
-          ? (imageUrl && diaryData.wineData.backImage)
-          : (diaryData.wineData.frontImage && imageUrl);
+          ? (imageUrl && diaryData.backImage)
+          : (diaryData.frontImage && imageUrl);
 
         const bothFilesPresent = isFront
           ? (file && backImageFile)
@@ -166,7 +168,7 @@ export default function Step1({ diaryData, isAnalyzing, onUpdateDiary, onUpdateW
   };
 
   // 폼을 표시할 조건: 두 이미지가 모두 있거나, 직접입력 모드일 때
-  const shouldShowForm = (diaryData.wineData.frontImage && diaryData.wineData.backImage) || isManualInput;
+  const shouldShowForm = (diaryData.frontImage && diaryData.backImage) || isManualInput;
 
   return (
     <main className="flex flex-col px-6 pt-0 pb-6">
@@ -185,12 +187,12 @@ export default function Step1({ diaryData, isAnalyzing, onUpdateDiary, onUpdateW
                 className="hidden"
               />
               <div className={`w-full h-full rounded-lg border-2 border-dashed
-                ${diaryData.wineData.frontImage ? 'border-wine-dark' : 'border-gray-300'}
+                ${diaryData.frontImage ? 'border-wine-dark' : 'border-gray-300'}
                 hover:border-wine-dark transition-colors relative overflow-hidden`}
               >
-                {diaryData.wineData.frontImage ? (
+                {diaryData.frontImage ? (
                   <Image
-                    src={diaryData.wineData.frontImage}
+                    src={diaryData.frontImage}
                     alt="Front label preview"
                     fill
                     style={{ objectFit: 'cover' }}
@@ -215,12 +217,12 @@ export default function Step1({ diaryData, isAnalyzing, onUpdateDiary, onUpdateW
                 className="hidden"
               />
               <div className={`w-full h-full rounded-lg border-2 border-dashed
-                ${diaryData.wineData.backImage ? 'border-wine-dark' : 'border-gray-300'}
+                ${diaryData.backImage ? 'border-wine-dark' : 'border-gray-300'}
                 hover:border-wine-dark transition-colors relative overflow-hidden`}
               >
-                {diaryData.wineData.backImage ? (
+                {diaryData.backImage ? (
                   <Image
-                    src={diaryData.wineData.backImage}
+                    src={diaryData.backImage}
                     alt="Back label preview"
                     fill
                     style={{ objectFit: 'cover' }}
@@ -323,13 +325,13 @@ export default function Step1({ diaryData, isAnalyzing, onUpdateDiary, onUpdateW
                         <SelectValue placeholder="선택해주세요" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="red">레드 와인</SelectItem>
-                        <SelectItem value="white">화이트 와인</SelectItem>
-                        <SelectItem value="sparkling">스파클링 와인</SelectItem>
-                        <SelectItem value="rose">로제 와인</SelectItem>
-                        <SelectItem value="icewine">아이스 와인</SelectItem>
-                        <SelectItem value="natural">내추럴 와인</SelectItem>
-                        <SelectItem value="dessert">디저트 와인</SelectItem>
+                        <SelectItem value="red">red</SelectItem>
+                        <SelectItem value="white">white</SelectItem>
+                        <SelectItem value="sparkling">sparkling</SelectItem>
+                        <SelectItem value="rose">rose</SelectItem>
+                        <SelectItem value="icewine">icewine</SelectItem>
+                        <SelectItem value="natural">natural</SelectItem>
+                        <SelectItem value="dessert">dessert</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -390,7 +392,8 @@ export default function Step1({ diaryData, isAnalyzing, onUpdateDiary, onUpdateW
           </div>
         ) : (
           <div className="text-center py-8 text-gray-500">
-            <p>와인 라벨 이미지를 업로드하거나 직접입력을 선택하여 정보를 입력해주세요.</p>
+            <p>와인 라벨 이미지를 업로드하거나</p>
+            <p>직접입력을 선택하여 정보를 입력해주세요.</p>
           </div>
         )}
       </div>

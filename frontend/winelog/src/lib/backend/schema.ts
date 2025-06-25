@@ -68,7 +68,7 @@ export interface paths {
       };
     };
   };
-  '/api/diary/save': {
+  '/api/v1/diary/save': {
     post: {
       requestBody: {
         content: {
@@ -81,8 +81,8 @@ export interface paths {
             isPublic: string;
             frontImage?: File;
             backImage?: File;
-            thumbnailImage?: string;
-            downloadImage?: string;
+            thumbnailImage?: File;
+            downloadImage?: File;
           };
         };
       };

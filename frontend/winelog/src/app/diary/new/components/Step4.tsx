@@ -28,8 +28,14 @@ export default function Step4({ diaryData, onUpdateDiary, onUpdateWine }: Step4P
         backgroundColor: '#ffffff',
       });
 
-      // downloadImage에 저장
-      onUpdateDiary({ downloadImage: dataUrl });
+      // downloadImage에 저장 - File 객체로도 변환
+      const blob = await (await fetch(dataUrl)).blob();
+      const file = new File([blob], `download-${Date.now()}.png`, { type: 'image/png' });
+
+      onUpdateDiary({
+        downloadImage: dataUrl,
+        downloadImageFile: file
+      });
     } catch (error) {
       console.error('이미지 생성 중 오류 발생:', error);
     }

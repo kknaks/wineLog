@@ -16,8 +16,6 @@ class Wine(Base):
     __tablename__ = "wines"
     
     id = Column(Integer, primary_key=True, index=True)
-    front_image = Column(String(500), nullable=True)
-    back_image = Column(String(500), nullable=True)
     name = Column(String(255), nullable=False, index=True)
     origin = Column(String(255), nullable=False)
     grape = Column(String(255), nullable=False)

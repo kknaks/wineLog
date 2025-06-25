@@ -14,3 +14,6 @@ langchain==0.1.6
 langchain-google-genai==0.0.11
 langchain-core==0.1.23
 openai>=1.10.0
+httpx
+python-decorators
+boto3==1.26.137

@@ -1,7 +1,5 @@
 export interface WineData{
   id: number;
-  frontImage: string | null;
-  backImage: string | null;
   name: string;
   origin: string;
   grape: string;

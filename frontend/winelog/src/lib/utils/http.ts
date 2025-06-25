@@ -64,40 +64,20 @@ export const httpFormDataRequest = async (
 ) => {
   const fullUrl = url.startsWith('http') ? url : `${API_BASE_URL}${url}`;
   
-  if (isNativeApp()) {
-    // 네이티브 앱에서는 Capacitor HTTP 사용
-    console.log('네이티브 앱에서 FormData 요청:', fullUrl);
-    
-    const response = await CapacitorHttp.request({
-      url: fullUrl,
-      method: 'POST',
-      headers: {
-        // FormData에서는 Content-Type을 자동으로 설정하므로 제거
-      },
-      data: formData,
-    });
-    
-    return {
-      data: response.data,
-      status: response.status,
-      headers: response.headers,
-    };
-  } else {
-    // 웹에서는 일반 fetch 사용
-    console.log('웹에서 FormData 요청:', fullUrl);
-    
-    const response = await fetch(fullUrl, {
-      method: 'POST',
-      body: formData,
-      credentials: 'include',
-    });
-    
-    const data = await response.json();
-    
-    return {
-      data,
-      status: response.status,
-      headers: Object.fromEntries(response.headers.entries()),
-    };
-  }
+  // 네이티브 앱에서도 웹과 동일하게 fetch 사용 (FormData 지원)
+  console.log(isNativeApp() ? '네이티브 앱에서 FormData 요청:' : '웹에서 FormData 요청:', fullUrl);
+  
+  const response = await fetch(fullUrl, {
+    method: 'POST',
+    body: formData,
+    // credentials: 'include', // 네이티브 앱에서는 제거
+  });
+  
+  const data = await response.json();
+  
+  return {
+    data,
+    status: response.status,
+    headers: Object.fromEntries(response.headers.entries()),
+  };
 }; 
