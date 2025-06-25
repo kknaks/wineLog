@@ -25,10 +25,10 @@ class NCPObjectStorageService:
     def __init__(self):
         self.s3_client = boto3.client(
             's3',
-            aws_access_key_id="ncp_iam_BPAMKR1q6nSp0dxLAWAi",
-            aws_secret_access_key="ncp_iam_BPKMKRTCXBhzwAaPbv5cevC9EeWPX8vi66",
-            region_name="kr",
-            endpoint_url=f"https://wine-log.{NCP_REGION}.ncloudstorage.com",
+            aws_access_key_id=NCP_ACCESS_KEY,
+            aws_secret_access_key=NCP_SECRET_KEY,
+            region_name=NCP_REGION,
+            endpoint_url=NCP_ENDPOINT,
         )
         self.bucket_name = NCP_BUCKET_NAME
         self.region_code = NCP_REGION

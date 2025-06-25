@@ -1,11 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import client from '@/lib/backend/client';
 import { useGlobalLoginMember } from '@/stores/auth/loginMember';
 
-export default function KakaoCallbackPage() {
+function KakaoCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [errorMessage, setErrorMessage] = useState('');
   const searchParams = useSearchParams();
@@ -96,5 +96,21 @@ export default function KakaoCallbackPage() {
         )}
       </div>
     </div>
+  );
+}
+
+export default function KakaoCallbackPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-white flex items-center justify-center p-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">로그인 처리 중...</h2>
+          <p className="text-gray-600">잠시만 기다려주세요.</p>
+        </div>
+      </div>
+    }>
+      <KakaoCallbackContent />
+    </Suspense>
   );
 } 
