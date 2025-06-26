@@ -11,8 +11,8 @@ export default function LoginPage() {
   const router = useRouter();
   const { setLoginMember } = useGlobalLoginMember();
 
-  // 카카오 앱 키 (환경변수에서 가져오거나 직접 설정)
-  const KAKAO_APP_KEY = process.env.NEXT_PUBLIC_KAKAO_CLIENT_ID || '9be4b832a05dea26f6f1f5c3b1d3d45b';
+  // 카카오 앱 키 (네이티브 앱용)
+  const KAKAO_APP_KEY = process.env.NEXT_PUBLIC_KAKAO_NATIVE_KEY || 'd6f53b1486bbaf246cec37b5083dc9d1';
 
   const handleKakaoLogin = async () => {
     try {

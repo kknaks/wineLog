@@ -60,7 +60,7 @@
 			<string>kakao</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>kakao9be4b832a05dea26f6f1f5c3b1d3d45b</string>
+				<string>kakaod6f53b1486bbaf246cec37b5083dc9d1</string>
 			</array>
 		</dict>
 	</array>
@@ -73,6 +73,6 @@
 	</array>
 	
 	<key>KAKAO_APP_KEY</key>
-	<string>9be4b832a05dea26f6f1f5c3b1d3d45b</string>
+	<string>d6f53b1486bbaf246cec37b5083dc9d1</string>
 </dict>
 </plist>

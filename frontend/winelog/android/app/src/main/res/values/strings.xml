@@ -4,5 +4,5 @@
     <string name="title_activity_main">WineLog</string>
     <string name="package_name">com.kknaks.winelog</string>
     <string name="custom_url_scheme">com.kknaks.winelog</string>
-    <string name="kakao_app_key">9be4b832a05dea26f6f1f5c3b1d3d45b</string>
+    <string name="kakao_app_key">d6f53b1486bbaf246cec37b5083dc9d1</string>
 </resources>
