@@ -11,4 +11,18 @@ const client = createClient<paths>({
   credentials: 'include',
 });
 
+// 모바일 앱에서 로컬 스토리지 토큰을 헤더에 추가하는 미들웨어
+client.use({
+  onRequest({ request }) {
+    // 모바일 앱에서 로컬 스토리지에 토큰이 있으면 Authorization 헤더에 추가
+    if (typeof window !== 'undefined') {
+      const accessToken = localStorage.getItem('access_token');
+      if (accessToken) {
+        request.headers.set('Authorization', `Bearer ${accessToken}`);
+      }
+    }
+    return request;
+  },
+});
+
 export default client; 

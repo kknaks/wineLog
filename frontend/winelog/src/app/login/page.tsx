@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import client from '@/lib/backend/client';
-import { isNativeApp, openKakaoLoginBrowser } from '@/lib/utils/mobile';
+import { isNativeApp, openKakaoLoginBrowser, getPlatform } from '@/lib/utils/mobile';
 import { useGlobalLoginMember } from '@/stores/auth/loginMember';
 
 export default function LoginPage() {
@@ -16,9 +16,10 @@ export default function LoginPage() {
       setIsLoading(true);
       console.log('카카오 로그인 시작...');
 
-      // 백엔드에서 카카오 로그인 URL 가져오기
-      console.log('API 호출 시작: /api/v1/auth/kakao/login');
-      const { data, error } = await (client as any).GET('/api/v1/auth/kakao/login');
+      // 백엔드에서 카카오 로그인 URL 가져오기 (플랫폼 정보 포함)
+      const platform = isNativeApp() ? getPlatform() : 'web';
+      console.log('API 호출 시작: /api/v1/auth/kakao/login, platform:', platform);
+      const { data, error } = await (client as any).GET(`/api/v1/auth/kakao/login?platform=${platform}`);
 
       console.log('API 응답 - data:', data);
       console.log('API 응답 - error:', error);
@@ -62,9 +63,9 @@ export default function LoginPage() {
       // 사용자 정보 API 호출하여 로그인 상태 확인
       const { data, error } = await (client as any).GET('/api/v1/auth/me');
 
-      if (!error && data && (data as any).user) {
+      if (!error && data) {
         console.log('로그인 확인됨:', data);
-        setLoginMember((data as any).user);
+        setLoginMember(data);
         router.push('/');
       } else {
         console.log('로그인 확인 실패');

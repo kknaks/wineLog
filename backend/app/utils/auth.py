@@ -49,17 +49,23 @@ def create_token_pair(user_data: dict):
         "token_type": "bearer"
     }
 
-class CookieBearer:
+class CookieOrHeaderBearer:
     def __call__(self, request: Request):
+        # 먼저 Authorization 헤더에서 토큰 확인 (모바일 앱용)
+        authorization = request.headers.get("Authorization")
+        if authorization and authorization.startswith("Bearer "):
+            return authorization.split(" ")[1]
+        
+        # Authorization 헤더가 없으면 쿠키에서 확인 (웹용)
         token = request.cookies.get("access_token")
         if not token:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Access token not found in cookies"
+                detail="Access token not found in cookies or Authorization header"
             )
         return token
 
-cookie_scheme = CookieBearer()
+cookie_scheme = CookieOrHeaderBearer()
 
 def get_db():
     db = SessionLocal()

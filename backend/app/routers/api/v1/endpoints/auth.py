@@ -14,12 +14,14 @@ user_service = UserService()
 front_url = settings.front_url
 
 @router.get("/kakao/login")
-async def kakao_login():
-    login_url = kakao_service.get_authorization_url()
+async def kakao_login(platform: str = Query(None)):
+    # 플랫폼 정보를 state로 전달하여 콜백에서 사용할 수 있도록 함
+    state = platform if platform else "web"
+    login_url = kakao_service.get_authorization_url(state=state)
     return {"login_url": login_url}
 
 @router.get("/kakao/callback")
-async def kakao_callback(response: Response, code: str = Query(...), db: Session = Depends(get_db)):
+async def kakao_callback(response: Response, code: str = Query(...), state: str = Query(None), db: Session = Depends(get_db)):
     # 액세스 토큰 받기
     access_token = await kakao_service.get_access_token(code)
     if not access_token:
@@ -40,31 +42,42 @@ async def kakao_callback(response: Response, code: str = Query(...), db: Session
     if existing_user:
         # 기존 사용자의 refresh token 업데이트
         user_service.update_user_refresh_token(db, existing_user, tokens["refresh_token"])
+        user_data = existing_user
     else:
         # 새 사용자 생성
-        user_service.create_user(db, user_info, tokens["refresh_token"])
+        user_data = user_service.create_user(db, user_info, tokens["refresh_token"])
     
-    # 리다이렉션 응답 생성 (프론트엔드 홈으로)
-    redirect_response = RedirectResponse(url=front_url, status_code=302)
+    # 모바일 앱인지 확인 (state에서 플랫폼 정보 추출)
+    platform = state if state else "web"
+    is_mobile = platform in ['ios', 'android']
     
-    # 쿠키에 토큰 설정
-    redirect_response.set_cookie(
-        key="access_token",
-        value=tokens["access_token"],
-        max_age=60 * 15,  # 15분
-        httponly=True,
-        secure=False,  # 개발환경에서는 False, 프로덕션에서는 True
-        samesite="lax"
-    )
-    
-    redirect_response.set_cookie(
-        key="refresh_token", 
-        value=tokens["refresh_token"],
-        max_age=60 * 60 * 24 * 30,  # 30일
-        httponly=True,
-        secure=False,  # 개발환경에서는 False, 프로덕션에서는 True
-        samesite="lax"
-    )
+    if is_mobile:
+        # 모바일 앱의 경우 토큰을 URL 파라미터로 전달
+        callback_url = f"{front_url}/login/callback"
+        redirect_url = f"{callback_url}?success=1&access_token={tokens['access_token']}&refresh_token={tokens['refresh_token']}&user_id={user_data.id}&nickname={user_data.nickname}"
+        redirect_response = RedirectResponse(url=redirect_url, status_code=302)
+    else:
+        # 웹의 경우 기존 방식 (쿠키 사용)
+        redirect_response = RedirectResponse(url=front_url, status_code=302)
+        
+        # 쿠키에 토큰 설정
+        redirect_response.set_cookie(
+            key="access_token",
+            value=tokens["access_token"],
+            max_age=60 * 15,  # 15분
+            httponly=True,
+            secure=False,  # 개발환경에서는 False, 프로덕션에서는 True
+            samesite="lax"
+        )
+        
+        redirect_response.set_cookie(
+            key="refresh_token", 
+            value=tokens["refresh_token"],
+            max_age=60 * 60 * 24 * 30,  # 30일
+            httponly=True,
+            secure=False,  # 개발환경에서는 False, 프로덕션에서는 True
+            samesite="lax"
+        )
     
     return redirect_response
 
