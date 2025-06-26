@@ -3,7 +3,6 @@ from typing import Optional
 from models.user import User
 
 class UserService:
-    
     def get_user_by_kakao_id(self, db: Session, kakao_id: str) -> Optional[User]:
         return db.query(User).filter(User.kakao_id == kakao_id).first()
     

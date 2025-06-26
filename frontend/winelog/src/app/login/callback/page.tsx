@@ -4,6 +4,7 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import client from '@/lib/backend/client';
 import { useGlobalLoginMember } from '@/stores/auth/loginMember';
+import { isNativeApp } from '@/lib/utils/mobile';
 
 function KakaoCallbackContent() {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
@@ -45,10 +46,19 @@ function KakaoCallbackContent() {
 
           console.log('로그인 성공:', data);
 
-          // 2초 후 홈으로 이동
+          // 모바일 앱에서는 즉시 홈으로 이동 (브라우저가 닫힘)
+          // 웹에서는 2초 후 이동
+          const delay = isNativeApp() ? 500 : 2000;
           setTimeout(() => {
-            router.push('/');
-          }, 2000);
+            if (isNativeApp()) {
+              // 모바일 앱에서는 브라우저가 자동으로 닫히므로 
+              // 이 코드는 실행되지 않을 수도 있지만, 안전을 위해 추가
+              console.log('모바일 앱에서 로그인 완료');
+              window.close();
+            } else {
+              router.push('/');
+            }
+          }, delay);
         } else {
           throw new Error('로그인 처리 중 오류가 발생했습니다.');
         }

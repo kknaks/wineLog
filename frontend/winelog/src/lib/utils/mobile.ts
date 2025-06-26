@@ -3,6 +3,7 @@ import { Filesystem, Directory, Encoding } from '@capacitor/filesystem';
 import { Share } from '@capacitor/share';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 
 // 플랫폼 확인
 export const isNativeApp = () => Capacitor.isNativePlatform();
@@ -183,5 +184,37 @@ export const loadWineDiary = async (diaryId: string) => {
   } catch (error) {
     console.error('파일 불러오기 실패:', error);
     return null;
+  }
+};
+
+// 모바일 카카오 로그인 (인앱 브라우저 사용)
+export const openKakaoLoginBrowser = async (loginUrl: string): Promise<string | null> => {
+  if (!isNativeApp()) {
+    // 웹에서는 일반 리다이렉트 사용
+    window.location.href = loginUrl;
+    return null;
+  }
+
+  try {
+    console.log('인앱 브라우저로 카카오 로그인 시작:', loginUrl);
+    
+    // 인앱 브라우저로 카카오 로그인 페이지 열기
+    await Browser.open({
+      url: loginUrl,
+    });
+
+    // 브라우저가 닫힐 때까지 대기
+    return new Promise((resolve) => {
+      const handleBrowserFinished = () => {
+        console.log('브라우저가 닫혔습니다. 로그인 상태를 확인합니다.');
+        Browser.removeAllListeners();
+        resolve('success');
+      };
+
+      Browser.addListener('browserFinished', handleBrowserFinished);
+    });
+  } catch (error) {
+    console.error('인앱 브라우저 열기 실패:', error);
+    throw error;
   }
 };

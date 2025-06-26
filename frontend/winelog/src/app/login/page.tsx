@@ -3,10 +3,13 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import client from '@/lib/backend/client';
+import { isNativeApp, openKakaoLoginBrowser } from '@/lib/utils/mobile';
+import { useGlobalLoginMember } from '@/stores/auth/loginMember';
 
 export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const { setLoginMember } = useGlobalLoginMember();
 
   const handleKakaoLogin = async () => {
     try {
@@ -27,8 +30,21 @@ export default function LoginPage() {
 
       if (data && (data as any).login_url) {
         console.log('로그인 URL:', (data as any).login_url);
-        // 카카오 로그인 페이지로 리다이렉트
-        window.location.href = (data as any).login_url;
+
+        if (isNativeApp()) {
+          // 모바일 앱에서는 인앱 브라우저 사용
+          console.log('모바일 앱에서 인앱 브라우저로 로그인 진행');
+          const result = await openKakaoLoginBrowser((data as any).login_url);
+
+          if (result === 'success') {
+            console.log('인앱 브라우저에서 로그인 완료, 상태 확인 중...');
+            // 로그인 상태 확인 (쿠키나 로컬 스토리지에서)
+            await checkLoginStatus();
+          }
+        } else {
+          // 웹에서는 일반 리다이렉트
+          window.location.href = (data as any).login_url;
+        }
       } else {
         console.error('로그인 URL이 없음. 응답 데이터:', data);
         throw new Error('로그인 URL이 응답에 없습니다.');
@@ -38,6 +54,23 @@ export default function LoginPage() {
       alert('로그인 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const checkLoginStatus = async () => {
+    try {
+      // 사용자 정보 API 호출하여 로그인 상태 확인
+      const { data, error } = await (client as any).GET('/api/v1/auth/me');
+
+      if (!error && data && (data as any).user) {
+        console.log('로그인 확인됨:', data);
+        setLoginMember((data as any).user);
+        router.push('/');
+      } else {
+        console.log('로그인 확인 실패');
+      }
+    } catch (error) {
+      console.error('로그인 상태 확인 실패:', error);
     }
   };
 
