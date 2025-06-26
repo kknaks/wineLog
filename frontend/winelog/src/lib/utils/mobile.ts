@@ -4,6 +4,19 @@ import { Share } from '@capacitor/share';
 import { Haptics, ImpactStyle } from '@capacitor/haptics';
 import { Capacitor } from '@capacitor/core';
 import { Browser } from '@capacitor/browser';
+import { CapacitorKakaoLogin } from '@team-lepisode/capacitor-kakao-login';
+
+// 카카오 로그인 응답 타입
+interface KakaoLoginResponse {
+  accessToken: string;
+  expiredAt: string;
+  expiresIn: string;
+  refreshToken: string;
+  idToken?: string;
+  refreshTokenExpiredAt: string;
+  refreshTokenExpiresIn: string;
+  tokenType: string;
+}
 
 // 플랫폼 확인
 export const isNativeApp = () => Capacitor.isNativePlatform();
@@ -216,5 +229,54 @@ export const openKakaoLoginBrowser = async (loginUrl: string): Promise<string | 
   } catch (error) {
     console.error('인앱 브라우저 열기 실패:', error);
     throw error;
+  }
+};
+
+// 카카오 SDK 초기화
+export const initializeKakaoSDK = async (appKey: string) => {
+  if (!isNativeApp()) {
+    console.log('웹 환경에서는 카카오 SDK를 사용할 수 없습니다.');
+    return false;
+  }
+
+  try {
+    await CapacitorKakaoLogin.initialize({ appKey });
+    console.log('카카오 SDK 초기화 완료');
+    return true;
+  } catch (error) {
+    console.error('카카오 SDK 초기화 실패:', error);
+    return false;
+  }
+};
+
+// 카카오 SDK 로그인
+export const kakaoSDKLogin = async (): Promise<KakaoLoginResponse | null> => {
+  if (!isNativeApp()) {
+    console.log('웹 환경에서는 카카오 SDK를 사용할 수 없습니다.');
+    return null;
+  }
+
+  try {
+    console.log('카카오 SDK 로그인 시작...');
+    const result = await CapacitorKakaoLogin.login();
+    console.log('카카오 SDK 로그인 성공:', result);
+    return result;
+  } catch (error) {
+    console.error('카카오 SDK 로그인 실패:', error);
+    throw error;
+  }
+};
+
+// 카카오 SDK 로그아웃
+export const kakaoSDKLogout = async () => {
+  if (!isNativeApp()) {
+    return;
+  }
+
+  try {
+    await CapacitorKakaoLogin.logout();
+    console.log('카카오 SDK 로그아웃 완료');
+  } catch (error) {
+    console.error('카카오 SDK 로그아웃 실패:', error);
   }
 };

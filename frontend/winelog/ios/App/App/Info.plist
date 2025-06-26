@@ -51,5 +51,28 @@
 	<string>갤러리에서 와인 사진을 선택하기 위해 사진 라이브러리 접근 권한이 필요합니다.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>촬영한 와인 사진을 갤러리에 저장하기 위해 사진 라이브러리 추가 권한이 필요합니다.</string>
+	
+	<!-- 카카오 로그인 설정 -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>kakao</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>kakao9be4b832a05dea26f6f1f5c3b1d3d45b</string>
+			</array>
+		</dict>
+	</array>
+	
+	<key>LSApplicationQueriesSchemes</key>
+	<array>
+		<string>kakaokompassauth</string>
+		<string>kakaolink</string>
+		<string>kakaotalk</string>
+	</array>
+	
+	<key>KAKAO_APP_KEY</key>
+	<string>9be4b832a05dea26f6f1f5c3b1d3d45b</string>
 </dict>
 </plist>

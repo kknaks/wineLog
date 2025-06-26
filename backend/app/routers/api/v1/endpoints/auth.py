@@ -138,3 +138,50 @@ async def get_me(current_user: User = Depends(get_current_user)):
         "profile_image": current_user.profile_image,
         "created_at": current_user.created_at
     }
+
+@router.post("/kakao/sdk-login")
+async def kakao_sdk_login(response: Response, request_data: dict, db: Session = Depends(get_db)):
+    """카카오 SDK 로그인 처리"""
+    try:
+        access_token = request_data.get("access_token")
+        platform = request_data.get("platform", "mobile")
+        
+        if not access_token:
+            raise HTTPException(status_code=400, detail="Access token is required")
+        
+        # 카카오 API로 사용자 정보 가져오기
+        user_info = await kakao_service.get_user_info(access_token)
+        if not user_info:
+            raise HTTPException(status_code=400, detail="Failed to get user info")
+        
+        # 우리 서비스의 JWT 토큰 쌍 생성
+        tokens = create_token_pair(user_info)
+        
+        # DB에서 기존 사용자 확인
+        kakao_id = str(user_info["id"])
+        existing_user = user_service.get_user_by_kakao_id(db, kakao_id)
+        
+        if existing_user:
+            # 기존 사용자의 refresh token 업데이트
+            user_service.update_user_refresh_token(db, existing_user, tokens["refresh_token"])
+            user_data = existing_user
+        else:
+            # 새 사용자 생성
+            user_data = user_service.create_user(db, user_info, tokens["refresh_token"])
+        
+        # 모바일에서는 토큰을 응답에 포함하여 전달
+        return {
+            "success": True,
+            "user": {
+                "id": user_data.id,
+                "kakao_id": user_data.kakao_id,
+                "nickname": user_data.nickname,
+                "email": user_data.email,
+                "profile_image": user_data.profile_image,
+            },
+            "tokens": tokens
+        }
+        
+    except Exception as e:
+        print(f"카카오 SDK 로그인 오류: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error")

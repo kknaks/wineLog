@@ -1,4 +1,5 @@
 PODS:
+  - Alamofire (5.9.1)
   - Capacitor (7.4.0):
     - CapacitorCordova
   - CapacitorBrowser (7.0.1):
@@ -22,6 +23,22 @@ PODS:
     - Capacitor
   - CapacitorStatusBar (6.0.2):
     - Capacitor
+  - KakaoSDKAuth (2.22.7):
+    - KakaoSDKCommon (= 2.22.7)
+  - KakaoSDKCommon (2.22.7):
+    - KakaoSDKCommon/Common (= 2.22.7)
+    - KakaoSDKCommon/Network (= 2.22.7)
+  - KakaoSDKCommon/Common (2.22.7)
+  - KakaoSDKCommon/Network (2.22.7):
+    - Alamofire (~> 5.9.0)
+    - KakaoSDKCommon/Common (= 2.22.7)
+  - KakaoSDKUser (2.22.7):
+    - KakaoSDKAuth (= 2.22.7)
+  - TeamLepisodeCapacitorKakaoLogin (7.0.0):
+    - Capacitor
+    - KakaoSDKAuth
+    - KakaoSDKCommon
+    - KakaoSDKUser
 
 DEPENDENCIES:
   - "Capacitor (from `../../node_modules/@capacitor/ios`)"
@@ -36,6 +53,14 @@ DEPENDENCIES:
   - "CapacitorShare (from `../../node_modules/@capacitor/share`)"
   - "CapacitorSplashScreen (from `../../node_modules/@capacitor/splash-screen`)"
   - "CapacitorStatusBar (from `../../node_modules/@capacitor/status-bar`)"
+  - "TeamLepisodeCapacitorKakaoLogin (from `../../node_modules/@team-lepisode/capacitor-kakao-login`)"
+
+SPEC REPOS:
+  trunk:
+    - Alamofire
+    - KakaoSDKAuth
+    - KakaoSDKCommon
+    - KakaoSDKUser
 
 EXTERNAL SOURCES:
   Capacitor:
@@ -62,8 +87,11 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/@capacitor/splash-screen"
   CapacitorStatusBar:
     :path: "../../node_modules/@capacitor/status-bar"
+  TeamLepisodeCapacitorKakaoLogin:
+    :path: "../../node_modules/@team-lepisode/capacitor-kakao-login"
 
 SPEC CHECKSUMS:
+  Alamofire: f36a35757af4587d8e4f4bfa223ad10be2422b8c
   Capacitor: 10feab36396883c55373328124a677f118cd4b5f
   CapacitorBrowser: 6299776d496e968505464884d565992faa20444a
   CapacitorCamera: 9bc7b005d0e6f1d5f525b8137045b60cffffce79
@@ -76,7 +104,11 @@ SPEC CHECKSUMS:
   CapacitorShare: d2a742baec21c8f3b92b361a2fbd2401cdd8288e
   CapacitorSplashScreen: 1d67815a422a9b61539c94f283c08ed56667c0fc
   CapacitorStatusBar: b16799a26320ffa52f6c8b01737d5a95bbb8f3eb
+  KakaoSDKAuth: 45204252ff7c379c0f86c5573f97ec36885afca0
+  KakaoSDKCommon: 132164a6bac8bcd3a4346d3bf777f34f8f39fdca
+  KakaoSDKUser: 4c9cf1da78710d19d0b2c2dd32d1a44c544cdfa4
+  TeamLepisodeCapacitorKakaoLogin: 7fe7692ab235d40ea44d38a038bfebf2bb104660
 
-PODFILE CHECKSUM: 5f2bb2e67ebdd01544865fec6ae39453ec8dbe10
+PODFILE CHECKSUM: eacf72b20f8c7d66ed2646ad0f19a1befbbd0f51
 
 COCOAPODS: 1.16.2
